@@ -27,6 +27,13 @@ function formatHours(h) {
   return `${hours}u${mins}m`;
 }
 
+function toLocalDateString(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function getMondayOfWeek(offset = 0) {
   const now = new Date();
   const day = now.getDay();
@@ -44,7 +51,7 @@ function getWeekDates(offset = 0) {
     return {
       name,
       date: d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }),
-      full: d.toISOString().slice(0, 10),
+      full: toLocalDateString(d),
     };
   });
 }
@@ -59,7 +66,7 @@ function getWeekNumber(offset = 0) {
 
 function getStorageKey(offset = 0) {
   const monday = getMondayOfWeek(offset);
-  return `weekplanner-${monday.toISOString().slice(0, 10)}`;
+  return `weekplanner-${toLocalDateString(monday)}`;
 }
 
 let idCounter = 0;
@@ -678,7 +685,7 @@ function WeekPlanner() {
             const dayTotal = getDayTotal(wd.name);
             const isOver = dayTotal > DAY_CAPACITY;
             const pct = Math.min((dayTotal / DAY_CAPACITY) * 100, 100);
-            const isToday = wd.full === new Date().toISOString().slice(0, 10);
+            const isToday = wd.full === toLocalDateString(new Date());
             const isDropTarget = dragOverDay === wd.name;
 
             return (
