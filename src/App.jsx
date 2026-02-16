@@ -1,24 +1,12 @@
 import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Auth } from "./pages/Auth";
+import { useAuth } from "./hooks/useAuth";
+import { COLORS, inputStyle, smallBtnStyle } from "./styles";
 
 const DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
 const DAY_CAPACITY = 7;
-
-const COLORS = {
-  bg: "#F5F4FA",
-  cardBg: "#FFFFFF",
-  accent: "#EDB90A",
-  accentLight: "#FBF0C4",
-  accentDark: "#C99A08",
-  green: "#22C982",
-  greenLight: "#E0F7ED",
-  red: "#E04848",
-  redLight: "#FCE8E8",
-  text: "#1E2240",
-  textMuted: "#616882",
-  border: "#DCDCE5",
-  shadow: "0 2px 8px rgba(30,34,64,0.06)",
-  shadowHover: "0 8px 24px rgba(30,34,64,0.12)",
-};
 
 const CLIENT_COLORS = [
   "#EDB90A", "#22C982", "#4D94F7", "#8B5CF6", "#EC4899",
@@ -131,31 +119,6 @@ function saveData(todos, clients, completedIds, offset = 0) {
 
 const defaultClients = ["UAF", "Amref", "Follow This", "Mindwize", "Lezen & Schrijven", "HospitaalBroeders"];
 
-const inputStyle = {
-  padding: "9px 12px",
-  borderRadius: 10,
-  border: "1px solid #DCDCE5",
-  fontSize: 14,
-  fontFamily: "inherit",
-  outline: "none",
-  background: "#FAFAFA",
-  transition: "border-color 0.15s",
-  color: "#1E2240",
-  boxSizing: "border-box",
-};
-
-const smallBtnStyle = {
-  padding: "6px 12px",
-  borderRadius: 8,
-  border: "none",
-  background: "#EDB90A",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontSize: 14,
-  fontFamily: "inherit",
-};
-
 const iconBtnStyle = {
   background: "none",
   border: "none",
@@ -244,6 +207,31 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
 }
 
 export default function App() {
+  return (
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <WeekPlanner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <ProtectedRoute>
+            <WeekPlanner />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}
+
+function WeekPlanner() {
+  const { signOut, user } = useAuth();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const saved = loadData(weekOffset);
@@ -471,6 +459,19 @@ export default function App() {
               title="Terug naar huidige week"
             >Vandaag</button>
           )}
+          <div style={{ width: 1, height: 24, background: COLORS.border, margin: "0 4px" }} />
+          <button
+            onClick={signOut}
+            style={{
+              ...smallBtnStyle,
+              background: "transparent",
+              color: COLORS.textMuted,
+              border: `1px solid ${COLORS.border}`,
+              fontSize: 12,
+              padding: "6px 12px",
+            }}
+            title={user?.email}
+          >Uitloggen</button>
         </div>
       </header>
 
