@@ -4,25 +4,25 @@ const DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
 const DAY_CAPACITY = 7;
 
 const COLORS = {
-  bg: "#FFF9F0",
+  bg: "#F5F4FA",
   cardBg: "#FFFFFF",
-  accent: "#E8B931",
-  accentLight: "#F5E6B8",
-  accentDark: "#C99E1C",
-  green: "#2EA44F",
-  greenLight: "#E6F4EA",
-  red: "#D93025",
-  redLight: "#FCE8E6",
-  text: "#1A1A1A",
-  textMuted: "#6B7280",
-  border: "#F0E6D3",
-  shadow: "0 2px 12px rgba(0,0,0,0.06)",
-  shadowHover: "0 4px 20px rgba(0,0,0,0.1)",
+  accent: "#EDB90A",
+  accentLight: "#FBF0C4",
+  accentDark: "#C99A08",
+  green: "#22C982",
+  greenLight: "#E0F7ED",
+  red: "#E04848",
+  redLight: "#FCE8E8",
+  text: "#1E2240",
+  textMuted: "#616882",
+  border: "#DCDCE5",
+  shadow: "0 2px 8px rgba(30,34,64,0.06)",
+  shadowHover: "0 8px 24px rgba(30,34,64,0.12)",
 };
 
 const CLIENT_COLORS = [
-  "#E8B931", "#2EA44F", "#3B82F6", "#8B5CF6", "#EC4899",
-  "#F97316", "#14B8A6", "#EF4444", "#6366F1", "#84CC16",
+  "#EDB90A", "#22C982", "#4D94F7", "#8B5CF6", "#EC4899",
+  "#F97316", "#14B8A6", "#E04848", "#6366F1", "#84CC16",
 ];
 
 function getClientColor(clientName, clients) {
@@ -39,11 +39,17 @@ function formatHours(h) {
   return `${hours}u${mins}m`;
 }
 
-function getWeekDates() {
+function getMondayOfWeek(offset = 0) {
   const now = new Date();
   const day = now.getDay();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + offset * 7);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function getWeekDates(offset = 0) {
+  const monday = getMondayOfWeek(offset);
   return DAYS.map((name, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -55,38 +61,71 @@ function getWeekDates() {
   });
 }
 
-function getWeekNumber() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now - start;
+function getWeekNumber(offset = 0) {
+  const monday = getMondayOfWeek(offset);
+  const yearStart = new Date(monday.getFullYear(), 0, 1);
+  const diff = monday - yearStart;
   const oneWeek = 604800000;
-  return Math.ceil((diff / oneWeek) + start.getDay() / 7);
+  return Math.ceil((diff / oneWeek + yearStart.getDay() / 7));
+}
+
+function getStorageKey(offset = 0) {
+  const monday = getMondayOfWeek(offset);
+  return `weekplanner-${monday.toISOString().slice(0, 10)}`;
 }
 
 let idCounter = 0;
 const uid = () => `todo-${Date.now()}-${++idCounter}`;
 
-const STORAGE_KEY = "weekplanner-data";
+const CLIENTS_KEY = "weekplanner-clients";
 
-function loadData() {
+// Migrate old single-key storage to per-week storage
+function migrateOldData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      return data;
+    const old = localStorage.getItem("weekplanner-data");
+    if (!old) return;
+    const data = JSON.parse(old);
+    const currentWeekKey = getStorageKey(0);
+    if (!localStorage.getItem(currentWeekKey)) {
+      localStorage.setItem(currentWeekKey, JSON.stringify({
+        todos: data.todos,
+        completedIds: data.completedIds || [],
+        savedAt: data.savedAt,
+      }));
     }
+    if (data.clients && !localStorage.getItem(CLIENTS_KEY)) {
+      localStorage.setItem(CLIENTS_KEY, JSON.stringify(data.clients));
+    }
+    localStorage.removeItem("weekplanner-data");
+  } catch (e) { /* ignore */ }
+}
+migrateOldData();
+
+function loadData(offset = 0) {
+  try {
+    const key = getStorageKey(offset);
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
   } catch (e) { /* ignore */ }
   return null;
 }
 
-function saveData(todos, clients, completedIds) {
+function loadClients() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    const raw = localStorage.getItem(CLIENTS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+function saveData(todos, clients, completedIds, offset = 0) {
+  try {
+    localStorage.setItem(getStorageKey(offset), JSON.stringify({
       todos,
-      clients,
       completedIds: [...completedIds],
       savedAt: new Date().toISOString(),
     }));
+    localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
   } catch (e) { /* ignore */ }
 }
 
@@ -95,13 +134,13 @@ const defaultClients = ["UAF", "Amref", "Follow This", "Mindwize", "Lezen & Schr
 const inputStyle = {
   padding: "9px 12px",
   borderRadius: 10,
-  border: "1px solid #F0E6D3",
+  border: "1px solid #DCDCE5",
   fontSize: 14,
   fontFamily: "inherit",
   outline: "none",
   background: "#FAFAFA",
   transition: "border-color 0.15s",
-  color: "#1A1A1A",
+  color: "#1E2240",
   boxSizing: "border-box",
 };
 
@@ -109,7 +148,7 @@ const smallBtnStyle = {
   padding: "6px 12px",
   borderRadius: 8,
   border: "none",
-  background: "#E8B931",
+  background: "#EDB90A",
   color: "#fff",
   fontWeight: 600,
   cursor: "pointer",
@@ -122,7 +161,7 @@ const iconBtnStyle = {
   border: "none",
   cursor: "pointer",
   fontSize: 16,
-  color: "#6B7280",
+  color: "#616882",
   padding: "2px 4px",
   borderRadius: 4,
   lineHeight: 1,
@@ -205,9 +244,12 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
 }
 
 export default function App() {
-  const saved = loadData();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const saved = loadData(weekOffset);
+  const savedClients = loadClients();
   const [todos, setTodos] = useState(saved?.todos || []);
-  const [clients, setClients] = useState(saved?.clients || defaultClients);
+  const [clients, setClients] = useState(savedClients || defaultClients);
   const [completedIds, setCompletedIds] = useState(new Set(saved?.completedIds || []));
   const [newTask, setNewTask] = useState("");
   const [newClient, setNewClient] = useState("");
@@ -218,7 +260,15 @@ export default function App() {
   const [dragId, setDragId] = useState(null);
   const [dragOverDay, setDragOverDay] = useState(null);
 
-  const weekDates = getWeekDates();
+  // Load data when week changes
+  const switchWeek = (newOffset) => {
+    const data = loadData(newOffset);
+    setTodos(data?.todos || []);
+    setCompletedIds(new Set(data?.completedIds || []));
+    setWeekOffset(newOffset);
+  };
+
+  const weekDates = getWeekDates(weekOffset);
   const inbox = todos.filter((t) => t.day === null);
   const getDayTodos = (dayName) => todos.filter((t) => t.day === dayName);
   const getDayTotal = (dayName) => getDayTodos(dayName).reduce((s, t) => s + t.hours, 0);
@@ -227,7 +277,7 @@ export default function App() {
   const updateTodos = (fn) => {
     setTodos((prev) => {
       const next = typeof fn === "function" ? fn(prev) : fn;
-      setTimeout(() => saveData(next, clients, completedIds), 0);
+      setTimeout(() => saveData(next, clients, completedIds, weekOffset), 0);
       return next;
     });
   };
@@ -235,7 +285,7 @@ export default function App() {
   const updateCompleted = (fn) => {
     setCompletedIds((prev) => {
       const next = typeof fn === "function" ? fn(prev) : fn;
-      setTimeout(() => saveData(todos, clients, next), 0);
+      setTimeout(() => saveData(todos, clients, next, weekOffset), 0);
       return next;
     });
   };
@@ -359,27 +409,67 @@ export default function App() {
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff", fontWeight: 700, fontSize: 18,
             fontFamily: "'Playfair Display', serif",
-          }}>W</div>
+          }}>M</div>
           <div>
             <h1 style={{
               margin: 0, fontSize: 22, fontWeight: 700,
               fontFamily: "'Playfair Display', serif",
               color: COLORS.accentDark,
-            }}>Weekplanner</h1>
+            }}>Me-Planner</h1>
             <p style={{ margin: 0, fontSize: 13, color: COLORS.textMuted }}>
               Plan je taken, beheers je week
             </p>
           </div>
         </div>
-        <div style={{
-          background: COLORS.accentLight,
-          padding: "8px 16px",
-          borderRadius: 8,
-          fontSize: 14,
-          fontWeight: 600,
-          color: COLORS.accentDark,
-        }}>
-          Week {getWeekNumber()} • {weekTotal > 0 ? `${formatHours(weekTotal)} gepland` : "Nog niets gepland"}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => switchWeek(weekOffset - 1)}
+            style={{
+              ...smallBtnStyle,
+              background: COLORS.accentLight,
+              color: COLORS.accentDark,
+              fontSize: 16,
+              padding: "6px 10px",
+              lineHeight: 1,
+            }}
+            title="Vorige week"
+          >‹</button>
+          <div style={{
+            background: COLORS.accentLight,
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 600,
+            color: COLORS.accentDark,
+            minWidth: 180,
+            textAlign: "center",
+          }}>
+            Week {getWeekNumber(weekOffset)} • {weekTotal > 0 ? `${formatHours(weekTotal)} gepland` : "Nog niets gepland"}
+          </div>
+          <button
+            onClick={() => switchWeek(weekOffset + 1)}
+            style={{
+              ...smallBtnStyle,
+              background: COLORS.accentLight,
+              color: COLORS.accentDark,
+              fontSize: 16,
+              padding: "6px 10px",
+              lineHeight: 1,
+            }}
+            title="Volgende week"
+          >›</button>
+          {weekOffset !== 0 && (
+            <button
+              onClick={() => switchWeek(0)}
+              style={{
+                ...smallBtnStyle,
+                background: COLORS.accent,
+                fontSize: 12,
+                padding: "6px 10px",
+              }}
+              title="Terug naar huidige week"
+            >Vandaag</button>
+          )}
         </div>
       </header>
 
@@ -389,7 +479,7 @@ export default function App() {
         padding: "24px 24px",
         maxWidth: 1600,
         margin: "0 auto",
-        alignItems: "flex-start",
+        alignItems: "stretch",
       }}>
         {/* LEFT: Inbox */}
         <div style={{
@@ -579,6 +669,7 @@ export default function App() {
           gap: 12,
           overflowX: "auto",
           paddingBottom: 8,
+          alignItems: "stretch",
         }}>
           {weekDates.map((wd) => {
             const dayTodos = getDayTodos(wd.name);
@@ -600,12 +691,11 @@ export default function App() {
                   background: isDropTarget ? COLORS.accentLight : COLORS.cardBg,
                   borderRadius: 16,
                   padding: 16,
-                  boxShadow: isToday ? `0 0 0 2px ${COLORS.accent}, ${COLORS.shadow}` : COLORS.shadow,
-                  border: `1px solid ${isDropTarget ? COLORS.accent : isToday ? COLORS.accent : COLORS.border}`,
+                  boxShadow: COLORS.shadow,
+                  border: `2px solid ${isDropTarget ? COLORS.accent : isToday ? COLORS.accent : COLORS.border}`,
                   transition: "all 0.2s",
                   display: "flex",
                   flexDirection: "column",
-                  minHeight: 400,
                 }}
               >
                 <div style={{ marginBottom: 12 }}>
