@@ -632,43 +632,6 @@ function WeekPlanner() {
             )}
           </div>
 
-          {/* Week Summary */}
-          {weekTotal > 0 && (
-            <div style={{
-              background: COLORS.cardBg,
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: COLORS.shadow,
-              border: `1px solid ${COLORS.border}`,
-            }}>
-              <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 6, height: 20, borderRadius: 3, background: "#3B82F6", display: "inline-block" }} />
-                Weekoverzicht
-              </h3>
-              {Object.entries(weekClientTotals).sort((a, b) => b[1] - a[1]).map(([client, hours]) => (
-                <div key={client} style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "6px 0", borderBottom: `1px solid ${COLORS.border}`,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: getClientColor(client, clients),
-                    }} />
-                    <span style={{ fontSize: 13 }}>{client}</span>
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{formatHours(hours)}</span>
-                </div>
-              ))}
-              <div style={{
-                display: "flex", justifyContent: "space-between",
-                padding: "10px 0 0", fontWeight: 700, fontSize: 14,
-              }}>
-                <span>Totaal</span>
-                <span style={{ color: COLORS.accentDark }}>{formatHours(weekTotal)}</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* RIGHT: Week Days */}
@@ -784,6 +747,64 @@ function WeekPlanner() {
           })}
         </div>
       </div>
+
+      {/* Week Summary - full width */}
+      {weekTotal > 0 && (
+        <div style={{
+          maxWidth: 1600,
+          margin: "0 auto",
+          padding: "0 24px 24px",
+        }}>
+          <div style={{
+            background: COLORS.cardBg,
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: COLORS.shadow,
+            border: `1px solid ${COLORS.border}`,
+          }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 6, height: 20, borderRadius: 3, background: "#3B82F6", display: "inline-block" }} />
+              Weekoverzicht
+            </h3>
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              alignItems: "center",
+            }}>
+              {Object.entries(weekClientTotals).sort((a, b) => b[1] - a[1]).map(([client, hours]) => (
+                <div key={client} style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#f9fafb",
+                  borderRadius: 10,
+                  padding: "8px 16px",
+                  border: `1px solid ${COLORS.border}`,
+                }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: "50%",
+                    background: getClientColor(client, clients),
+                  }} />
+                  <span style={{ fontSize: 13, color: COLORS.text }}>{client}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.accentDark }}>{formatHours(hours)}</span>
+                </div>
+              ))}
+              <div style={{
+                marginLeft: "auto",
+                fontWeight: 700,
+                fontSize: 15,
+                color: COLORS.accentDark,
+                padding: "8px 16px",
+                background: COLORS.accentLight,
+                borderRadius: 10,
+              }}>
+                Totaal: {formatHours(weekTotal)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
