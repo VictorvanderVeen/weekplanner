@@ -390,7 +390,7 @@ export default function App() {
       fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
       color: COLORS.text,
     }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* Header */}
       <header style={{
@@ -402,21 +402,22 @@ export default function App() {
         justifyContent: "space-between",
         boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDark})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 700, fontSize: 18,
-            fontFamily: "'Playfair Display', serif",
-          }}>M</div>
-          <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ position: "relative" }}>
+            <div style={{
+              width: 32, height: 3, borderRadius: 2,
+              background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.green})`,
+              marginBottom: 4,
+            }} />
             <h1 style={{
-              margin: 0, fontSize: 22, fontWeight: 700,
-              fontFamily: "'Playfair Display', serif",
-              color: COLORS.accentDark,
+              margin: 0, fontSize: 28, fontWeight: 700,
+              background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.green}, #4D94F7)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              lineHeight: 1.2,
             }}>Me-Planner</h1>
-            <p style={{ margin: 0, fontSize: 13, color: COLORS.textMuted }}>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: COLORS.textMuted }}>
               Plan je taken, beheers je week
             </p>
           </div>
