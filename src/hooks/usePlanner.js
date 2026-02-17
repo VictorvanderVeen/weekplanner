@@ -147,6 +147,8 @@ export function usePlanner(weekStart) {
     const MIGRATION_KEY = "weekplanner-migrated-to-supabase";
     if (localStorage.getItem(MIGRATION_KEY)) return;
 
+    let migrationSucceeded = true;
+
     try {
       // Collect all week keys from localStorage
       const weekKeys = [];
@@ -162,13 +164,18 @@ export function usePlanner(weekStart) {
       if (clientsRaw) {
         const localClients = JSON.parse(clientsRaw);
         if (Array.isArray(localClients) && localClients.length > 0) {
+
           const clientRows = localClients.map((naam) => ({
             user_id: user.id,
             naam,
           }));
-          await supabase
+          const { error } = await supabase
             .from("planner_klanten")
             .upsert(clientRows, { onConflict: "user_id,naam", ignoreDuplicates: true });
+          if (error) {
+            migrationSucceeded = false;
+            console.error("Client migration failed:", error);
+          }
         }
       }
 
@@ -181,6 +188,7 @@ export function usePlanner(weekStart) {
         const data = JSON.parse(raw);
         if (!data.todos || !Array.isArray(data.todos)) continue;
 
+        hasData = true;
         const completedSet = new Set(data.completedIds || []);
         const todoRows = data.todos.map((t) => ({
           user_id: user.id,
@@ -194,7 +202,11 @@ export function usePlanner(weekStart) {
         }));
 
         if (todoRows.length > 0) {
-          await supabase.from("planner_taken").insert(todoRows);
+          const { error } = await supabase.from("planner_taken").insert(todoRows);
+          if (error) {
+            migrationSucceeded = false;
+            console.error("Todo migration failed for", key, error);
+          }
         }
       }
 
@@ -203,6 +215,7 @@ export function usePlanner(weekStart) {
       if (oldData) {
         const data = JSON.parse(oldData);
         if (data.todos && Array.isArray(data.todos)) {
+
           const completedSet = new Set(data.completedIds || []);
           const todoRows = data.todos.map((t) => ({
             user_id: user.id,
@@ -215,20 +228,24 @@ export function usePlanner(weekStart) {
             week_start: weekStart, // current week as fallback
           }));
           if (todoRows.length > 0) {
-            await supabase.from("planner_taken").insert(todoRows);
+            const { error } = await supabase.from("planner_taken").insert(todoRows);
+            if (error) {
+              migrationSucceeded = false;
+              console.error("Old data migration failed:", error);
+            }
           }
         }
       }
 
-      // Mark migration as done and clean up localStorage
-      localStorage.setItem(MIGRATION_KEY, "true");
-
-      // Remove old localStorage data
-      for (const key of weekKeys) {
-        localStorage.removeItem(key);
+      // Only clean up localStorage if migration succeeded
+      if (migrationSucceeded) {
+        localStorage.setItem(MIGRATION_KEY, "true");
+        for (const key of weekKeys) {
+          localStorage.removeItem(key);
+        }
+        localStorage.removeItem("weekplanner-clients");
+        localStorage.removeItem("weekplanner-data");
       }
-      localStorage.removeItem("weekplanner-clients");
-      localStorage.removeItem("weekplanner-data");
 
       // Reload data from Supabase
       await Promise.all([loadTodos(), loadClients()]);
