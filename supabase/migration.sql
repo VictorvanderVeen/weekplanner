@@ -28,8 +28,10 @@ ALTER TABLE public.planner_klanten ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Gebruikers zien alleen eigen taken"
   ON public.planner_taken FOR ALL
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Gebruikers zien alleen eigen klanten"
   ON public.planner_klanten FOR ALL
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
