@@ -6,6 +6,13 @@ import { useAuth } from "./hooks/useAuth";
 import { usePlanner } from "./hooks/usePlanner";
 import { COLORS, inputStyle, smallBtnStyle } from "./styles";
 
+const cardStyle = {
+  background: COLORS.cardBg,
+  borderRadius: 16,
+  boxShadow: COLORS.shadow,
+  border: `1px solid ${COLORS.borderLight}`,
+};
+
 const DAYS = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
 const DAY_CAPACITY = 7;
 
@@ -90,15 +97,16 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
       onDragStart={(e) => onDragStart(e, todo.id)}
       onDragEnd={onDragEnd}
       style={{
-        background: isDragging ? COLORS.accentLight : "#fff",
-        border: `1px solid ${isDragging ? COLORS.accent : COLORS.border}`,
-        borderRadius: 12,
+        background: isDragging ? COLORS.accentLight : COLORS.cardBg,
+        border: `1px solid ${isDragging ? COLORS.accent : COLORS.borderLight}`,
+        borderRadius: 10,
         padding: compact ? "10px 12px" : "12px 14px",
         cursor: "grab",
-        opacity: isDragging ? 0.5 : isCompleted ? 0.5 : 1,
+        opacity: isDragging ? 0.5 : isCompleted ? 0.45 : 1,
         transition: "all 0.15s",
         borderLeft: `4px solid ${clientColor}`,
         position: "relative",
+        boxShadow: "0 1px 4px rgba(30,34,64,0.05)",
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
@@ -118,27 +126,27 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize: compact ? 13 : 14,
-            fontWeight: 500,
+            fontWeight: 600,
             textDecoration: isCompleted ? "line-through" : "none",
-            color: isCompleted ? COLORS.textMuted : COLORS.text,
-            lineHeight: 1.3,
+            color: isCompleted ? COLORS.textSecondary : COLORS.text,
+            lineHeight: 1.35,
             wordBreak: "break-word",
+            letterSpacing: "-0.01em",
           }}>
             {todo.task}
           </div>
           <div style={{
-            display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap",
+            display: "flex", alignItems: "center", gap: 5, marginTop: 5, flexWrap: "wrap",
           }}>
             <span style={{
-              fontSize: 11, fontWeight: 600, color: clientColor,
-              background: `${clientColor}18`,
-              padding: "1px 6px", borderRadius: 4,
+              fontSize: 10, fontWeight: 600, color: clientColor,
+              background: `${clientColor}14`,
+              padding: "2px 6px", borderRadius: 4, letterSpacing: "0.01em",
             }}>
               {todo.client}
             </span>
             <span style={{
-              fontSize: 11, color: COLORS.textMuted,
-              background: "#f3f4f6", padding: "1px 6px", borderRadius: 4,
+              fontSize: 10, color: COLORS.textSecondary, fontWeight: 500,
             }}>
               {formatHours(todo.hours)}
             </span>
@@ -320,12 +328,12 @@ function WeekPlanner() {
       {/* Header */}
       <header style={{
         background: COLORS.cardBg,
-        borderBottom: `2px solid ${COLORS.border}`,
-        padding: "20px 32px",
+        borderBottom: `1px solid ${COLORS.borderLight}`,
+        padding: "16px 32px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        boxShadow: "0 2px 8px rgba(30,34,64,0.06)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ position: "relative" }}>
@@ -464,14 +472,11 @@ function WeekPlanner() {
           }}>
             {/* Add Todo Card */}
             <div style={{
-              background: COLORS.cardBg,
-              borderRadius: 16,
+              ...cardStyle,
               padding: 20,
-              boxShadow: COLORS.shadow,
-              border: `1px solid ${COLORS.border}`,
             }}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 6, height: 20, borderRadius: 3, background: COLORS.accent, display: "inline-block" }} />
+              <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 5, height: 18, borderRadius: 3, background: COLORS.accent, display: "inline-block" }} />
                 Taak Toevoegen
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -543,18 +548,17 @@ function WeekPlanner() {
               onDragOver={handleInboxDragOver}
               onDrop={handleInboxDrop}
               style={{
+                ...cardStyle,
                 background: dragOverDay === "inbox" ? COLORS.accentLight : COLORS.cardBg,
-                borderRadius: 16,
+                border: `1px solid ${dragOverDay === "inbox" ? COLORS.accent : COLORS.borderLight}`,
                 padding: 20,
-                boxShadow: COLORS.shadow,
-                border: `1px solid ${dragOverDay === "inbox" ? COLORS.accent : COLORS.border}`,
                 transition: "all 0.2s",
                 minHeight: 120,
                 flex: 1,
               }}
             >
-              <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 6, height: 20, borderRadius: 3, background: COLORS.green, display: "inline-block" }} />
+              <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 5, height: 18, borderRadius: 3, background: COLORS.green, display: "inline-block" }} />
                 Inbox
                 <span style={{
                   marginLeft: "auto", fontSize: 12, color: COLORS.textMuted,
@@ -612,11 +616,11 @@ function WeekPlanner() {
                   style={{
                     flex: 1,
                     minWidth: 0,
-                    background: isDropTarget ? COLORS.accentLight : COLORS.cardBg,
+                    background: isDropTarget ? COLORS.accentLight : isToday ? COLORS.todayBg : COLORS.cardBg,
                     borderRadius: 16,
                     padding: 16,
-                    boxShadow: COLORS.shadow,
-                    border: `2px solid ${isDropTarget ? COLORS.accent : isToday ? COLORS.accent : COLORS.border}`,
+                    boxShadow: isToday ? "0 2px 16px rgba(237,185,10,0.12), 0 1px 4px rgba(30,34,64,0.06)" : COLORS.shadow,
+                    border: isDropTarget ? `2px solid ${COLORS.accent}` : isToday ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.borderLight}`,
                     transition: "all 0.2s",
                     display: "flex",
                     flexDirection: "column",
@@ -670,8 +674,8 @@ function WeekPlanner() {
                     {dayTodos.length === 0 && (
                       <div style={{
                         flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#d1d5db", fontSize: 13, fontStyle: "italic",
-                        border: "2px dashed #e5e7eb", borderRadius: 12,
+                        color: "#c5c8d6", fontSize: 12, fontStyle: "italic",
+                        border: "2px dashed #d8d8e3", borderRadius: 10,
                         minHeight: 80,
                       }}>
                         Sleep taken hierheen
@@ -709,14 +713,11 @@ function WeekPlanner() {
           padding: "0 24px 24px",
         }}>
           <div style={{
-            background: COLORS.cardBg,
-            borderRadius: 16,
+            ...cardStyle,
             padding: 20,
-            boxShadow: COLORS.shadow,
-            border: `1px solid ${COLORS.border}`,
           }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 6, height: 20, borderRadius: 3, background: "#3B82F6", display: "inline-block" }} />
+            <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 5, height: 18, borderRadius: 3, background: "#3B82F6", display: "inline-block" }} />
               Weekoverzicht
             </h3>
             <div style={{
@@ -730,16 +731,16 @@ function WeekPlanner() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  background: "#f9fafb",
+                  background: "#F5F5FA",
                   borderRadius: 10,
-                  padding: "8px 16px",
-                  border: `1px solid ${COLORS.border}`,
+                  padding: "8px 14px",
+                  border: `1px solid ${COLORS.borderLight}`,
                 }}>
                   <span style={{
-                    width: 10, height: 10, borderRadius: "50%",
+                    width: 8, height: 8, borderRadius: "50%",
                     background: getClientColor(client, clients),
                   }} />
-                  <span style={{ fontSize: 13, color: COLORS.text }}>{client}</span>
+                  <span style={{ fontSize: 13, color: COLORS.text, fontWeight: 500 }}>{client}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.accentDark }}>{formatHours(hours)}</span>
                 </div>
               ))}
