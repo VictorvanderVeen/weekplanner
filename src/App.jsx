@@ -76,6 +76,13 @@ function getWeekStart(offset = 0) {
   return toLocalDateString(getMondayOfWeek(offset));
 }
 
+function getTodayDayName() {
+  const dayIndex = new Date().getDay();
+  // Sunday = 0, Monday = 1, etc. Map to DAYS array (Mon-Fri)
+  if (dayIndex === 0 || dayIndex === 6) return null; // Weekend
+  return DAYS[dayIndex - 1];
+}
+
 const iconBtnStyle = {
   background: "none",
   border: "none",
@@ -191,6 +198,13 @@ export default function App() {
 function WeekPlanner() {
   const { signOut, user } = useAuth();
   const [weekOffset, setWeekOffset] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const weekStart = getWeekStart(weekOffset);
   const {
@@ -329,7 +343,7 @@ function WeekPlanner() {
       <header style={{
         background: COLORS.cardBg,
         borderBottom: `1px solid ${COLORS.borderLight}`,
-        padding: "16px 32px",
+        padding: isMobile ? "12px 16px" : "16px 32px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -338,73 +352,79 @@ function WeekPlanner() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ position: "relative" }}>
             <div style={{
-              width: 32, height: 3, borderRadius: 2,
+              width: isMobile ? 24 : 32, height: 3, borderRadius: 2,
               background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.green})`,
               marginBottom: 4,
             }} />
             <h1 style={{
-              margin: 0, fontSize: 28, fontWeight: 700,
+              margin: 0, fontSize: isMobile ? 22 : 28, fontWeight: 700,
               background: `linear-gradient(90deg, ${COLORS.accent}, ${COLORS.green}, #4D94F7)`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               lineHeight: 1.2,
             }}>Me-Planner</h1>
-            <p style={{ margin: "4px 0 0", fontSize: 13, color: COLORS.textMuted }}>
-              Plan je taken, beheers je week
-            </p>
+            {!isMobile && (
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: COLORS.textMuted }}>
+                Plan je taken, beheers je week
+              </p>
+            )}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button
-            onClick={() => setWeekOffset(weekOffset - 1)}
-            style={{
-              ...smallBtnStyle,
-              background: COLORS.accentLight,
-              color: COLORS.accentDark,
-              fontSize: 16,
-              padding: "6px 10px",
-              lineHeight: 1,
-            }}
-            title="Vorige week"
-          >‹</button>
-          <div style={{
-            background: COLORS.accentLight,
-            padding: "8px 16px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 600,
-            color: COLORS.accentDark,
-            minWidth: 180,
-            textAlign: "center",
-          }}>
-            Week {getWeekNumber(weekOffset)} • {weekTotal > 0 ? `${formatHours(weekTotal)} gepland` : "Nog niets gepland"}
-          </div>
-          <button
-            onClick={() => setWeekOffset(weekOffset + 1)}
-            style={{
-              ...smallBtnStyle,
-              background: COLORS.accentLight,
-              color: COLORS.accentDark,
-              fontSize: 16,
-              padding: "6px 10px",
-              lineHeight: 1,
-            }}
-            title="Volgende week"
-          >›</button>
-          {weekOffset !== 0 && (
-            <button
-              onClick={() => setWeekOffset(0)}
-              style={{
-                ...smallBtnStyle,
-                background: COLORS.accent,
-                fontSize: 12,
-                padding: "6px 10px",
-              }}
-              title="Terug naar huidige week"
-            >Vandaag</button>
+          {!isMobile && (
+            <>
+              <button
+                onClick={() => setWeekOffset(weekOffset - 1)}
+                style={{
+                  ...smallBtnStyle,
+                  background: COLORS.accentLight,
+                  color: COLORS.accentDark,
+                  fontSize: 16,
+                  padding: "6px 10px",
+                  lineHeight: 1,
+                }}
+                title="Vorige week"
+              >‹</button>
+              <div style={{
+                background: COLORS.accentLight,
+                padding: "8px 16px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                color: COLORS.accentDark,
+                minWidth: 180,
+                textAlign: "center",
+              }}>
+                Week {getWeekNumber(weekOffset)} • {weekTotal > 0 ? `${formatHours(weekTotal)} gepland` : "Nog niets gepland"}
+              </div>
+              <button
+                onClick={() => setWeekOffset(weekOffset + 1)}
+                style={{
+                  ...smallBtnStyle,
+                  background: COLORS.accentLight,
+                  color: COLORS.accentDark,
+                  fontSize: 16,
+                  padding: "6px 10px",
+                  lineHeight: 1,
+                }}
+                title="Volgende week"
+              >›</button>
+              {weekOffset !== 0 && (
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  style={{
+                    ...smallBtnStyle,
+                    background: COLORS.accent,
+                    fontSize: 12,
+                    padding: "6px 10px",
+                  }}
+                  title="Terug naar huidige week"
+                >Vandaag</button>
+              )}
+              <div style={{ width: 1, height: 24, background: COLORS.border, margin: "0 4px" }} />
+            </>
           )}
-          <div style={{ width: 1, height: 24, background: COLORS.border, margin: "0 4px" }} />
           <button
             onClick={signOut}
             style={{
@@ -453,7 +473,167 @@ function WeekPlanner() {
         </div>
       )}
 
-      {!loading && (
+      {/* Mobile Layout */}
+      {!loading && isMobile && (() => {
+        const todayName = getTodayDayName();
+        const todayTodos = todayName ? getDayTodos(todayName) : [];
+        const todayTotal = todayName ? getDayTotal(todayName) : 0;
+        const todayDate = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+
+        return (
+          <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Add Todo */}
+            <div style={{ ...cardStyle, padding: 16 }}>
+              <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 5, height: 18, borderRadius: 3, background: COLORS.accent, display: "inline-block" }} />
+                Taak Toevoegen
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <input
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Wat moet je doen?"
+                  style={{ ...inputStyle, fontSize: 16 }}
+                />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <select value={newClient} onChange={(e) => {
+                    if (e.target.value === "__add__") { setShowAddClient(true); setNewClient(""); }
+                    else setNewClient(e.target.value);
+                  }} style={{ ...inputStyle, flex: 1, cursor: "pointer", fontSize: 16 }}>
+                    <option value="">Klant</option>
+                    {clients.map((c) => <option key={c} value={c}>{c}</option>)}
+                    <option value="__add__">+ Nieuwe klant</option>
+                  </select>
+                  <input
+                    value={newHours}
+                    onChange={(e) => setNewHours(e.target.value)}
+                    placeholder="Uren"
+                    type="number"
+                    step="0.25"
+                    min="0.25"
+                    style={{ ...inputStyle, width: 70, fontSize: 16 }}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                {showAddClient && (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      placeholder="Klantnaam"
+                      style={{ ...inputStyle, flex: 1, fontSize: 16 }}
+                      onKeyDown={(e) => { if (e.key === "Enter") addClient(); }}
+                      autoFocus
+                    />
+                    <button onClick={addClient} style={smallBtnStyle}>✓</button>
+                    <button onClick={() => setShowAddClient(false)} style={{ ...smallBtnStyle, background: "#f3f4f6", color: COLORS.textMuted }}>✕</button>
+                  </div>
+                )}
+                <button
+                  onClick={addTodo}
+                  disabled={!newTask.trim() || !newClient || !newHours}
+                  style={{
+                    padding: "12px 0",
+                    borderRadius: 10,
+                    border: "none",
+                    background: (!newTask.trim() || !newClient || !newHours) ? "#e5e7eb" : `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDark})`,
+                    color: (!newTask.trim() || !newClient || !newHours) ? "#9ca3af" : "#fff",
+                    fontWeight: 600,
+                    fontSize: 15,
+                    cursor: (!newTask.trim() || !newClient || !newHours) ? "default" : "pointer",
+                    transition: "all 0.2s",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Toevoegen
+                </button>
+              </div>
+            </div>
+
+            {/* Today */}
+            {todayName && (
+              <div style={{
+                ...cardStyle,
+                background: COLORS.todayBg,
+                border: `2px solid ${COLORS.accent}`,
+                boxShadow: "0 2px 16px rgba(237,185,10,0.12), 0 1px 4px rgba(30,34,64,0.06)",
+                padding: 16,
+              }}>
+                <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 5, height: 18, borderRadius: 3, background: COLORS.accent, display: "inline-block" }} />
+                  Vandaag
+                  <span style={{ fontSize: 12, fontWeight: 400, color: COLORS.textMuted }}>{todayDate}</span>
+                  {todayTotal > 0 && (
+                    <span style={{
+                      marginLeft: "auto", fontSize: 12, fontWeight: 600, color: COLORS.accentDark,
+                    }}>{formatHours(todayTotal)}</span>
+                  )}
+                </h3>
+                {todayTodos.length === 0 ? (
+                  <p style={{ color: COLORS.textMuted, fontSize: 13, padding: "12px 0", margin: 0 }}>
+                    Geen taken voor vandaag
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                    {todayTodos.map((todo) => (
+                      <TodoCard
+                        key={todo.id}
+                        todo={todo}
+                        clients={clients}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        onRemove={removeTodo}
+                        onToggleComplete={toggleComplete}
+                        isCompleted={todo.completed}
+                        isDragging={false}
+                        compact
+                        onMoveToInbox={moveToInbox}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Inbox */}
+            <div style={{ ...cardStyle, padding: 16 }}>
+              <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 5, height: 18, borderRadius: 3, background: COLORS.green, display: "inline-block" }} />
+                Inbox
+                <span style={{
+                  marginLeft: "auto", fontSize: 12, color: COLORS.textMuted,
+                  background: "#f3f4f6", padding: "2px 8px", borderRadius: 10,
+                }}>{inbox.length}</span>
+              </h3>
+              {inbox.length === 0 ? (
+                <p style={{ color: COLORS.textMuted, fontSize: 13, textAlign: "center", padding: "16px 0" }}>
+                  Alle taken zijn ingepland! 🎉
+                </p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {inbox.map((todo) => (
+                    <TodoCard
+                      key={todo.id}
+                      todo={todo}
+                      clients={clients}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      onRemove={removeTodo}
+                      onToggleComplete={toggleComplete}
+                      isCompleted={todo.completed}
+                      isDragging={false}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Desktop Layout */}
+      {!loading && !isMobile && (
         <div style={{
           display: "flex",
           gap: 24,
@@ -694,7 +874,7 @@ function WeekPlanner() {
                         isDragging={dragId === todo.id}
                         compact
                         onMoveToInbox={moveToInbox}
-  
+
                       />
                     ))}
                   </div>
@@ -705,8 +885,8 @@ function WeekPlanner() {
         </div>
       )}
 
-      {/* Week Summary - full width */}
-      {!loading && weekTotal > 0 && (
+      {/* Week Summary - full width (desktop only) */}
+      {!loading && !isMobile && weekTotal > 0 && (
         <div style={{
           maxWidth: 1600,
           margin: "0 auto",
