@@ -81,7 +81,7 @@ const iconBtnStyle = {
   transition: "color 0.15s",
 };
 
-function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, isCompleted, isDragging, compact, onMoveToInbox, priorityIcon }) {
+function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, isCompleted, isDragging, compact, onMoveToInbox }) {
   const clientColor = getClientColor(todo.client, clients);
 
   return (
@@ -142,7 +142,7 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
             }}>
               {formatHours(todo.hours)}
             </span>
-            <span style={{ fontSize: 10 }}>{priorityIcon(todo.priority)}</span>
+
           </div>
         </div>
         <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
@@ -187,6 +187,7 @@ function WeekPlanner() {
   const weekStart = getWeekStart(weekOffset);
   const {
     todos,
+    inboxTodos,
     clients,
     loading,
     error,
@@ -200,7 +201,7 @@ function WeekPlanner() {
   const [newTask, setNewTask] = useState("");
   const [newClient, setNewClient] = useState("");
   const [newHours, setNewHours] = useState("");
-  const [newPriority, setNewPriority] = useState("medium");
+
   const [newClientName, setNewClientName] = useState("");
   const [showAddClient, setShowAddClient] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -214,7 +215,7 @@ function WeekPlanner() {
   }, [user]);
 
   const weekDates = getWeekDates(weekOffset);
-  const inbox = todos.filter((t) => t.day === null);
+  const inbox = inboxTodos;
   const getDayTodos = (dayName) => todos.filter((t) => t.day === dayName);
   const getDayTotal = (dayName) => getDayTodos(dayName).reduce((s, t) => s + t.hours, 0);
 
@@ -225,11 +226,10 @@ function WeekPlanner() {
       client: newClient,
       hours: parseFloat(newHours),
       day: null,
-      priority: newPriority,
+      priority: "medium",
     });
     setNewTask("");
     setNewHours("");
-    setNewPriority("medium");
   };
 
   const addClient = () => {
@@ -245,14 +245,18 @@ function WeekPlanner() {
   };
 
   const toggleComplete = (id) => {
-    const todo = todos.find((t) => t.id === id);
+    const todo = todos.find((t) => t.id === id) || inboxTodos.find((t) => t.id === id);
     if (todo) {
       updateTodo(id, { completed: !todo.completed });
     }
   };
 
   const moveTodo = (id, day) => {
-    updateTodo(id, { day });
+    if (day) {
+      updateTodo(id, { day, week_start: weekStart });
+    } else {
+      updateTodo(id, { day: null });
+    }
   };
 
   const moveToInbox = (id) => moveTodo(id, null);
@@ -299,12 +303,6 @@ function WeekPlanner() {
     weekClientTotals[t.client] = (weekClientTotals[t.client] || 0) + t.hours;
   });
   const weekTotal = Object.values(weekClientTotals).reduce((a, b) => a + b, 0);
-
-  const priorityIcon = (p) => {
-    if (p === "high") return "🔴";
-    if (p === "medium") return "🟡";
-    return "🟢";
-  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") addTodo();
@@ -518,19 +516,7 @@ function WeekPlanner() {
                     <button onClick={() => setShowAddClient(false)} style={{ ...smallBtnStyle, background: "#f3f4f6", color: COLORS.textMuted }}>✕</button>
                   </div>
                 )}
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: COLORS.textMuted, marginRight: 4 }}>Prioriteit:</span>
-                  {["high", "medium", "low"].map((p) => (
-                    <button key={p} onClick={() => setNewPriority(p)} style={{
-                      border: newPriority === p ? `2px solid ${COLORS.accent}` : "2px solid transparent",
-                      background: newPriority === p ? COLORS.accentLight : "#f9fafb",
-                      borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 13,
-                      transition: "all 0.15s", fontFamily: "inherit",
-                    }}>
-                      {priorityIcon(p)} {p === "high" ? "Hoog" : p === "medium" ? "Midden" : "Laag"}
-                    </button>
-                  ))}
-                </div>
+
                 <button
                   onClick={addTodo}
                   disabled={!newTask.trim() || !newClient || !newHours}
@@ -564,6 +550,7 @@ function WeekPlanner() {
                 border: `1px solid ${dragOverDay === "inbox" ? COLORS.accent : COLORS.border}`,
                 transition: "all 0.2s",
                 minHeight: 120,
+                flex: 1,
               }}
             >
               <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
@@ -591,7 +578,7 @@ function WeekPlanner() {
                       onToggleComplete={toggleComplete}
                       isCompleted={todo.completed}
                       isDragging={dragId === todo.id}
-                      priorityIcon={priorityIcon}
+
                     />
                   ))}
                 </div>
@@ -605,8 +592,7 @@ function WeekPlanner() {
             flex: 1,
             display: "flex",
             gap: 12,
-            overflowX: "auto",
-            paddingBottom: 8,
+            minWidth: 0,
             alignItems: "stretch",
           }}>
             {weekDates.map((wd) => {
@@ -625,7 +611,7 @@ function WeekPlanner() {
                   onDragLeave={() => setDragOverDay(null)}
                   style={{
                     flex: 1,
-                    minWidth: 190,
+                    minWidth: 0,
                     background: isDropTarget ? COLORS.accentLight : COLORS.cardBg,
                     borderRadius: 16,
                     padding: 16,
@@ -704,7 +690,7 @@ function WeekPlanner() {
                         isDragging={dragId === todo.id}
                         compact
                         onMoveToInbox={moveToInbox}
-                        priorityIcon={priorityIcon}
+  
                       />
                     ))}
                   </div>

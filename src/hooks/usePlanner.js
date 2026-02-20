@@ -5,9 +5,21 @@ import { useAuth } from "./useAuth";
 export function usePlanner(weekStart) {
   const { user } = useAuth();
   const [todos, setTodos] = useState([]);
+  const [inboxTodos, setInboxTodos] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const mapRow = (row) => ({
+    id: row.id,
+    task: row.task,
+    client: row.client,
+    hours: parseFloat(row.hours),
+    day: row.day,
+    priority: row.priority,
+    completed: row.completed,
+    week_start: row.week_start,
+  });
 
   const loadTodos = useCallback(async () => {
     if (!user || !weekStart) return;
@@ -15,24 +27,30 @@ export function usePlanner(weekStart) {
       .from("planner_taken")
       .select("*")
       .eq("user_id", user.id)
-      .eq("week_start", weekStart);
+      .eq("week_start", weekStart)
+      .not("day", "is", null);
 
     if (error) {
       setError(error.message);
       return;
     }
-    setTodos(
-      (data || []).map((row) => ({
-        id: row.id,
-        task: row.task,
-        client: row.client,
-        hours: parseFloat(row.hours),
-        day: row.day,
-        priority: row.priority,
-        completed: row.completed,
-      }))
-    );
+    setTodos((data || []).map(mapRow));
   }, [user, weekStart]);
+
+  const loadInbox = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("planner_taken")
+      .select("*")
+      .eq("user_id", user.id)
+      .is("day", null);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setInboxTodos((data || []).map(mapRow));
+  }, [user]);
 
   const loadClients = useCallback(async () => {
     if (!user) return;
@@ -54,8 +72,8 @@ export function usePlanner(weekStart) {
     if (!user || !weekStart) return;
     setLoading(true);
     setError(null);
-    Promise.all([loadTodos(), loadClients()]).finally(() => setLoading(false));
-  }, [user, weekStart, loadTodos, loadClients]);
+    Promise.all([loadTodos(), loadInbox(), loadClients()]).finally(() => setLoading(false));
+  }, [user, weekStart, loadTodos, loadInbox, loadClients]);
 
   const addTodo = async (todo) => {
     if (!user) return;
@@ -79,18 +97,12 @@ export function usePlanner(weekStart) {
       setError(error.message);
       return;
     }
-    setTodos((prev) => [
-      ...prev,
-      {
-        id: data.id,
-        task: data.task,
-        client: data.client,
-        hours: parseFloat(data.hours),
-        day: data.day,
-        priority: data.priority,
-        completed: data.completed,
-      },
-    ]);
+    const mapped = mapRow(data);
+    if (data.day === null) {
+      setInboxTodos((prev) => [...prev, mapped]);
+    } else {
+      setTodos((prev) => [...prev, mapped]);
+    }
   };
 
   const updateTodo = async (id, updates) => {
@@ -105,9 +117,30 @@ export function usePlanner(weekStart) {
       setError(error.message);
       return;
     }
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
+
+    // Find the todo in either list
+    const inInbox = inboxTodos.find((t) => t.id === id);
+    const inWeek = todos.find((t) => t.id === id);
+    const todo = inInbox || inWeek;
+    if (!todo) return;
+
+    const updated = { ...todo, ...updates };
+
+    if (inInbox && updates.day) {
+      // Moving from inbox to a day
+      setInboxTodos((prev) => prev.filter((t) => t.id !== id));
+      setTodos((prev) => [...prev, updated]);
+    } else if (inWeek && updates.day === null) {
+      // Moving from a day back to inbox
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+      setInboxTodos((prev) => [...prev, updated]);
+    } else if (inInbox) {
+      // Updating an inbox todo (e.g. toggling complete)
+      setInboxTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } else {
+      // Updating a week todo
+      setTodos((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    }
   };
 
   const removeTodo = async (id) => {
@@ -123,6 +156,7 @@ export function usePlanner(weekStart) {
       return;
     }
     setTodos((prev) => prev.filter((t) => t.id !== id));
+    setInboxTodos((prev) => prev.filter((t) => t.id !== id));
   };
 
   const addClient = async (naam) => {
@@ -256,6 +290,7 @@ export function usePlanner(weekStart) {
 
   return {
     todos,
+    inboxTodos,
     clients,
     loading,
     error,
@@ -264,6 +299,6 @@ export function usePlanner(weekStart) {
     removeTodo,
     addClient,
     migrateFromLocalStorage,
-    reload: () => Promise.all([loadTodos(), loadClients()]),
+    reload: () => Promise.all([loadTodos(), loadInbox(), loadClients()]),
   };
 }
