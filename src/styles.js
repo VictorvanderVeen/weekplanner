@@ -1,6 +1,6 @@
 export const COLORS = {
-  bg: "#F5F4FA",
-  cardBg: "#FFFFFF",
+  bg: "#ECEAF2",
+  cardBg: "#FEFEFE",
   accent: "#EDB90A",
   accentLight: "#FBF0C4",
   accentDark: "#C99A08",
@@ -9,10 +9,13 @@ export const COLORS = {
   red: "#E04848",
   redLight: "#FCE8E8",
   text: "#1E2240",
-  textMuted: "#616882",
-  border: "#DCDCE5",
-  shadow: "0 2px 8px rgba(30,34,64,0.06)",
-  shadowHover: "0 8px 24px rgba(30,34,64,0.12)",
+  textMuted: "#6B7194",
+  textSecondary: "#8C91AD",
+  border: "#D8D8E3",
+  borderLight: "#E8E8F0",
+  shadow: "0 2px 12px rgba(30,34,64,0.08), 0 1px 3px rgba(30,34,64,0.06)",
+  shadowHover: "0 8px 28px rgba(30,34,64,0.14)",
+  todayBg: "#FFFDF5",
 };
 
 export const inputStyle = {
@@ -22,7 +25,7 @@ export const inputStyle = {
   fontSize: 14,
   fontFamily: "inherit",
   outline: "none",
-  background: "#FAFAFA",
+  background: "#F8F8FB",
   transition: "border-color 0.15s",
   color: COLORS.text,
   boxSizing: "border-box",
