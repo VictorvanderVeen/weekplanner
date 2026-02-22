@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { SubscriptionGate } from "./components/SubscriptionGate";
 import { Auth } from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
 import { usePlanner } from "./hooks/usePlanner";
@@ -179,7 +180,9 @@ export default function App() {
         path="/"
         element={
           <ProtectedRoute>
-            <WeekPlanner />
+            <SubscriptionGate>
+              <WeekPlanner />
+            </SubscriptionGate>
           </ProtectedRoute>
         }
       />
@@ -187,7 +190,9 @@ export default function App() {
         path="*"
         element={
           <ProtectedRoute>
-            <WeekPlanner />
+            <SubscriptionGate>
+              <WeekPlanner />
+            </SubscriptionGate>
           </ProtectedRoute>
         }
       />
