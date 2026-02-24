@@ -3,11 +3,13 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "./useAuth";
 
 export function useSubscription() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       setSubscription(null);
       setLoading(false);
@@ -31,7 +33,7 @@ export function useSubscription() {
     };
 
     fetchSubscription();
-  }, [user]);
+  }, [user, authLoading]);
 
   const isActive =
     subscription?.status === "active" ||
