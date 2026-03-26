@@ -96,7 +96,7 @@ const iconBtnStyle = {
   transition: "color 0.15s",
 };
 
-function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, isCompleted, isDragging, compact, onMoveToInbox }) {
+function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, isCompleted, isDragging, compact, onMoveToInbox, onMoveToToday }) {
   const clientColor = getClientColor(todo.client, clients);
 
   return (
@@ -162,6 +162,9 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
           </div>
         </div>
         <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+          {onMoveToToday && (
+            <button onClick={() => onMoveToToday(todo.id)} title="Plan voor vandaag" style={{ ...iconBtnStyle, color: COLORS.accent }}>☀</button>
+          )}
           {onMoveToInbox && (
             <button onClick={() => onMoveToInbox(todo.id)} title="Terug naar inbox" style={iconBtnStyle}>↩</button>
           )}
@@ -233,6 +236,7 @@ function WeekPlanner() {
   const [showAddClient, setShowAddClient] = useState(false);
   const [dragId, setDragId] = useState(null);
   const [dragOverDay, setDragOverDay] = useState(null);
+  const [planForToday, setPlanForToday] = useState(false);
 
   // Migrate localStorage data on first load
   useEffect(() => {
@@ -248,11 +252,13 @@ function WeekPlanner() {
 
   const addTodo = () => {
     if (!newTask.trim() || !newClient || !newHours) return;
+    const targetDay = planForToday ? getTodayDayName() : null;
+    
     addTodoToDb({
       task: newTask.trim(),
       client: newClient,
       hours: parseFloat(newHours),
-      day: null,
+      day: targetDay,
       priority: "medium",
     });
     setNewTask("");
@@ -287,6 +293,10 @@ function WeekPlanner() {
   };
 
   const moveToInbox = (id) => moveTodo(id, null);
+  const moveToToday = (id) => {
+    const todayName = getTodayDayName();
+    if (todayName) moveTodo(id, todayName);
+  };
 
   const handleDragStart = (e, id) => {
     setDragId(id);
@@ -535,6 +545,15 @@ function WeekPlanner() {
                     <button onClick={() => setShowAddClient(false)} style={{ ...smallBtnStyle, background: "#f3f4f6", color: COLORS.textMuted }}>✕</button>
                   </div>
                 )}
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: COLORS.text, cursor: "pointer", marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    checked={planForToday}
+                    onChange={(e) => setPlanForToday(e.target.checked)}
+                    style={{ width: 16, height: 16, cursor: "pointer", accentColor: COLORS.accent }}
+                  />
+                  Plan in voor vandaag
+                </label>
                 <button
                   onClick={addTodo}
                   disabled={!newTask.trim() || !newClient || !newHours}
@@ -628,6 +647,7 @@ function WeekPlanner() {
                       onToggleComplete={toggleComplete}
                       isCompleted={todo.completed}
                       isDragging={false}
+                      onMoveToToday={todayName ? moveToToday : undefined}
                     />
                   ))}
                 </div>
@@ -706,6 +726,16 @@ function WeekPlanner() {
                     <button onClick={() => setShowAddClient(false)} style={{ ...smallBtnStyle, background: "#f3f4f6", color: COLORS.textMuted }}>✕</button>
                   </div>
                 )}
+                
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: COLORS.text, cursor: "pointer", marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    checked={planForToday}
+                    onChange={(e) => setPlanForToday(e.target.checked)}
+                    style={{ width: 15, height: 15, cursor: "pointer", accentColor: COLORS.accent }}
+                  />
+                  Plan in voor vandaag
+                </label>
 
                 <button
                   onClick={addTodo}
