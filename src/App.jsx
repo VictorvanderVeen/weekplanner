@@ -163,7 +163,85 @@ function SubtaskEditor({ subtasks, setSubtasks, fontSize = 13 }) {
   );
 }
 
-function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, onToggleSubtask, isCompleted, isDragging, compact, onMoveToInbox, onMoveToToday }) {
+function TaskModal({ todo, clients, onClose, onToggleSubtask }) {
+  if (!todo) return null;
+  const clientColor = getClientColor(todo.client, clients);
+  const subtasks = todo.subtasks || [];
+  const doneCount = subtasks.filter((s) => s.done).length;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(30,34,64,0.45)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: COLORS.cardBg, borderRadius: 16, width: "100%", maxWidth: 520,
+          maxHeight: "85vh", display: "flex", flexDirection: "column",
+          boxShadow: COLORS.shadowHover, borderLeft: `5px solid ${clientColor}`, overflow: "hidden",
+        }}
+      >
+        <div style={{ padding: "20px 22px 14px", borderBottom: `1px solid ${COLORS.borderLight}` }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: COLORS.text, lineHeight: 1.3, flex: 1 }}>
+              {todo.task}
+            </h2>
+            <button onClick={onClose} title="Sluiten" style={{ ...iconBtnStyle, fontSize: 20, color: COLORS.textMuted }}>×</button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: clientColor, background: `${clientColor}14`, padding: "3px 8px", borderRadius: 5 }}>
+              {todo.client}
+            </span>
+            <span style={{ fontSize: 11, color: COLORS.textSecondary, fontWeight: 500 }}>{formatHours(todo.hours)}</span>
+            {subtasks.length > 0 && (
+              <span style={{
+                fontSize: 11, fontWeight: 600, marginLeft: "auto",
+                color: doneCount === subtasks.length ? COLORS.green : COLORS.textSecondary,
+              }}>
+                {doneCount}/{subtasks.length} afgerond
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={{ padding: "12px 22px 22px", overflowY: "auto" }}>
+          {subtasks.length === 0 ? (
+            <p style={{ color: COLORS.textMuted, fontSize: 14 }}>Geen deeltaken.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {subtasks.map((s) => (
+                <label key={s.id} style={{
+                  display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer",
+                  padding: "9px 6px", borderRadius: 8,
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={s.done}
+                    onChange={() => onToggleSubtask(todo.id, s.id)}
+                    style={{ width: 18, height: 18, marginTop: 1, cursor: "pointer", accentColor: COLORS.green, flexShrink: 0 }}
+                  />
+                  <span style={{
+                    fontSize: 14, lineHeight: 1.45, color: s.done ? COLORS.textSecondary : COLORS.text,
+                    textDecoration: s.done ? "line-through" : "none",
+                  }}>
+                    {s.text}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, onToggleSubtask, onOpen, isCompleted, isDragging, compact, onMoveToInbox, onMoveToToday }) {
   const clientColor = getClientColor(todo.client, clients);
 
   return (
@@ -226,38 +304,22 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
               {formatHours(todo.hours)}
             </span>
             {todo.subtasks?.length > 0 && (
-              <span style={{
-                fontSize: 10, fontWeight: 600,
-                color: todo.subtasks.every((s) => s.done) ? COLORS.green : COLORS.textSecondary,
-                background: todo.subtasks.every((s) => s.done) ? COLORS.greenLight : "#f1f1f6",
-                padding: "2px 6px", borderRadius: 4,
-              }}>
-                ☑ {todo.subtasks.filter((s) => s.done).length}/{todo.subtasks.length}
-              </span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onOpen && onOpen(todo.id); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                title="Open deeltaken"
+                style={{
+                  fontSize: 10, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                  border: "none", display: "inline-flex", alignItems: "center", gap: 3,
+                  color: todo.subtasks.every((s) => s.done) ? COLORS.green : COLORS.textSecondary,
+                  background: todo.subtasks.every((s) => s.done) ? COLORS.greenLight : "#f1f1f6",
+                  padding: "2px 7px", borderRadius: 4,
+                }}
+              >
+                ☑ {todo.subtasks.filter((s) => s.done).length}/{todo.subtasks.length} ›
+              </button>
             )}
           </div>
-          {todo.subtasks?.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 8 }}>
-              {todo.subtasks.map((s) => (
-                <label key={s.id} style={{ display: "flex", alignItems: "flex-start", gap: 6, cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={s.done}
-                    onChange={() => onToggleSubtask && onToggleSubtask(todo.id, s.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ width: 13, height: 13, marginTop: 2, cursor: "pointer", accentColor: COLORS.green, flexShrink: 0 }}
-                  />
-                  <span style={{
-                    fontSize: 12, lineHeight: 1.3, wordBreak: "break-word",
-                    color: s.done ? COLORS.textSecondary : COLORS.textMuted,
-                    textDecoration: s.done ? "line-through" : "none",
-                  }}>
-                    {s.text}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
         </div>
         <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
           {onMoveToToday && (
@@ -331,6 +393,7 @@ function WeekPlanner() {
   const [newHours, setNewHours] = useState("");
 
   const [newSubtasks, setNewSubtasks] = useState([]);
+  const [openId, setOpenId] = useState(null);
   const [newClientName, setNewClientName] = useState("");
   const [showAddClient, setShowAddClient] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -726,6 +789,7 @@ function WeekPlanner() {
                         onRemove={removeTodo}
                         onToggleComplete={toggleComplete}
                         onToggleSubtask={toggleSubtask}
+                        onOpen={setOpenId}
                         isCompleted={todo.completed}
                         isDragging={false}
                         compact
@@ -763,6 +827,7 @@ function WeekPlanner() {
                       onRemove={removeTodo}
                       onToggleComplete={toggleComplete}
                       onToggleSubtask={toggleSubtask}
+                        onOpen={setOpenId}
                       isCompleted={todo.completed}
                       isDragging={false}
                       onMoveToToday={todayName ? moveToToday : undefined}
@@ -921,6 +986,7 @@ function WeekPlanner() {
                       onRemove={removeTodo}
                       onToggleComplete={toggleComplete}
                       onToggleSubtask={toggleSubtask}
+                        onOpen={setOpenId}
                       isCompleted={todo.completed}
                       isDragging={dragId === todo.id}
 
@@ -1032,6 +1098,7 @@ function WeekPlanner() {
                         onRemove={removeTodo}
                         onToggleComplete={toggleComplete}
                         onToggleSubtask={toggleSubtask}
+                        onOpen={setOpenId}
                         isCompleted={todo.completed}
                         isDragging={dragId === todo.id}
                         compact
@@ -1100,6 +1167,15 @@ function WeekPlanner() {
             </div>
           </div>
         </div>
+      )}
+
+      {openId && (
+        <TaskModal
+          todo={todos.find((t) => t.id === openId) || inboxTodos.find((t) => t.id === openId) || null}
+          clients={clients}
+          onClose={() => setOpenId(null)}
+          onToggleSubtask={toggleSubtask}
+        />
       )}
     </div>
   );
