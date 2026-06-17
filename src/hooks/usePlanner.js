@@ -19,6 +19,7 @@ export function usePlanner(weekStart) {
     priority: row.priority,
     completed: row.completed,
     week_start: row.week_start,
+    subtasks: row.subtasks || [],
   });
 
   const loadTodos = useCallback(async () => {
@@ -86,6 +87,7 @@ export function usePlanner(weekStart) {
       priority: todo.priority,
       completed: false,
       week_start: weekStart,
+      subtasks: todo.subtasks || [],
     };
     const { data, error } = await supabase
       .from("planner_taken")

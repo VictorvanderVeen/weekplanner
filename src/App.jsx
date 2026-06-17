@@ -96,7 +96,74 @@ const iconBtnStyle = {
   transition: "color 0.15s",
 };
 
-function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, isCompleted, isDragging, compact, onMoveToInbox, onMoveToToday }) {
+function makeSubtaskId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `st-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+}
+
+// Notitie-/deeltaken-editor voor het "Taak Toevoegen"-formulier.
+// Gedeeld tussen de mobiele en desktop-layout zodat beide gelijk blijven.
+function SubtaskEditor({ subtasks, setSubtasks, fontSize = 13 }) {
+  const [input, setInput] = useState("");
+
+  const addSubtask = () => {
+    const text = input.trim();
+    if (!text) return;
+    setSubtasks([...subtasks, { id: makeSubtaskId(), text, done: false }]);
+    setInput("");
+  };
+
+  const removeSubtask = (id) => setSubtasks(subtasks.filter((s) => s.id !== id));
+  const toggleSubtask = (id) =>
+    setSubtasks(subtasks.map((s) => (s.id === id ? { ...s, done: !s.done } : s)));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {subtasks.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {subtasks.map((s) => (
+            <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={s.done}
+                onChange={() => toggleSubtask(s.id)}
+                style={{ width: 14, height: 14, cursor: "pointer", accentColor: COLORS.green, flexShrink: 0 }}
+              />
+              <span style={{
+                flex: 1, fontSize, color: s.done ? COLORS.textSecondary : COLORS.text,
+                textDecoration: s.done ? "line-through" : "none", wordBreak: "break-word",
+              }}>
+                {s.text}
+              </span>
+              <button
+                onClick={() => removeSubtask(s.id)}
+                title="Verwijder deeltaak"
+                style={{ ...iconBtnStyle, color: COLORS.red }}
+              >×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSubtask(); } }}
+          placeholder="Deeltaak toevoegen…"
+          style={{ ...inputStyle, flex: 1, fontSize }}
+        />
+        <button
+          onClick={addSubtask}
+          disabled={!input.trim()}
+          title="Deeltaak toevoegen"
+          style={{ ...smallBtnStyle, background: input.trim() ? COLORS.accent : "#e5e7eb", color: input.trim() ? "#fff" : "#9ca3af", cursor: input.trim() ? "pointer" : "default" }}
+        >+</button>
+      </div>
+    </div>
+  );
+}
+
+function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleComplete, onToggleSubtask, isCompleted, isDragging, compact, onMoveToInbox, onMoveToToday }) {
   const clientColor = getClientColor(todo.client, clients);
 
   return (
@@ -158,8 +225,39 @@ function TodoCard({ todo, clients, onDragStart, onDragEnd, onRemove, onToggleCom
             }}>
               {formatHours(todo.hours)}
             </span>
-
+            {todo.subtasks?.length > 0 && (
+              <span style={{
+                fontSize: 10, fontWeight: 600,
+                color: todo.subtasks.every((s) => s.done) ? COLORS.green : COLORS.textSecondary,
+                background: todo.subtasks.every((s) => s.done) ? COLORS.greenLight : "#f1f1f6",
+                padding: "2px 6px", borderRadius: 4,
+              }}>
+                ☑ {todo.subtasks.filter((s) => s.done).length}/{todo.subtasks.length}
+              </span>
+            )}
           </div>
+          {todo.subtasks?.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 8 }}>
+              {todo.subtasks.map((s) => (
+                <label key={s.id} style={{ display: "flex", alignItems: "flex-start", gap: 6, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={s.done}
+                    onChange={() => onToggleSubtask && onToggleSubtask(todo.id, s.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: 13, height: 13, marginTop: 2, cursor: "pointer", accentColor: COLORS.green, flexShrink: 0 }}
+                  />
+                  <span style={{
+                    fontSize: 12, lineHeight: 1.3, wordBreak: "break-word",
+                    color: s.done ? COLORS.textSecondary : COLORS.textMuted,
+                    textDecoration: s.done ? "line-through" : "none",
+                  }}>
+                    {s.text}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
         <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
           {onMoveToToday && (
@@ -232,6 +330,7 @@ function WeekPlanner() {
   const [newClient, setNewClient] = useState("");
   const [newHours, setNewHours] = useState("");
 
+  const [newSubtasks, setNewSubtasks] = useState([]);
   const [newClientName, setNewClientName] = useState("");
   const [showAddClient, setShowAddClient] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -260,9 +359,11 @@ function WeekPlanner() {
       hours: parseFloat(newHours),
       day: targetDay,
       priority: "medium",
+      subtasks: newSubtasks,
     });
     setNewTask("");
     setNewHours("");
+    setNewSubtasks([]);
   };
 
   const addClient = () => {
@@ -282,6 +383,15 @@ function WeekPlanner() {
     if (todo) {
       updateTodo(id, { completed: !todo.completed });
     }
+  };
+
+  const toggleSubtask = (todoId, subtaskId) => {
+    const todo = todos.find((t) => t.id === todoId) || inboxTodos.find((t) => t.id === todoId);
+    if (!todo) return;
+    const subtasks = (todo.subtasks || []).map((s) =>
+      s.id === subtaskId ? { ...s, done: !s.done } : s
+    );
+    updateTodo(todoId, { subtasks });
   };
 
   const moveTodo = (id, day) => {
@@ -545,6 +655,12 @@ function WeekPlanner() {
                     <button onClick={() => setShowAddClient(false)} style={{ ...smallBtnStyle, background: "#f3f4f6", color: COLORS.textMuted }}>✕</button>
                   </div>
                 )}
+                <div style={{ marginTop: 2 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.textMuted, display: "block", marginBottom: 6 }}>
+                    Notitie / deeltaken
+                  </span>
+                  <SubtaskEditor subtasks={newSubtasks} setSubtasks={setNewSubtasks} fontSize={14} />
+                </div>
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: COLORS.text, cursor: "pointer", marginTop: 4 }}>
                   <input
                     type="checkbox"
@@ -609,6 +725,7 @@ function WeekPlanner() {
                         onDragEnd={handleDragEnd}
                         onRemove={removeTodo}
                         onToggleComplete={toggleComplete}
+                        onToggleSubtask={toggleSubtask}
                         isCompleted={todo.completed}
                         isDragging={false}
                         compact
@@ -645,6 +762,7 @@ function WeekPlanner() {
                       onDragEnd={handleDragEnd}
                       onRemove={removeTodo}
                       onToggleComplete={toggleComplete}
+                      onToggleSubtask={toggleSubtask}
                       isCompleted={todo.completed}
                       isDragging={false}
                       onMoveToToday={todayName ? moveToToday : undefined}
@@ -727,6 +845,13 @@ function WeekPlanner() {
                   </div>
                 )}
                 
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.textMuted, display: "block", marginBottom: 6 }}>
+                    Notitie / deeltaken
+                  </span>
+                  <SubtaskEditor subtasks={newSubtasks} setSubtasks={setNewSubtasks} fontSize={13} />
+                </div>
+
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: COLORS.text, cursor: "pointer", marginTop: 4 }}>
                   <input
                     type="checkbox"
@@ -795,6 +920,7 @@ function WeekPlanner() {
                       onDragEnd={handleDragEnd}
                       onRemove={removeTodo}
                       onToggleComplete={toggleComplete}
+                      onToggleSubtask={toggleSubtask}
                       isCompleted={todo.completed}
                       isDragging={dragId === todo.id}
 
@@ -905,6 +1031,7 @@ function WeekPlanner() {
                         onDragEnd={handleDragEnd}
                         onRemove={removeTodo}
                         onToggleComplete={toggleComplete}
+                        onToggleSubtask={toggleSubtask}
                         isCompleted={todo.completed}
                         isDragging={dragId === todo.id}
                         compact
