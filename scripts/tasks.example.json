@@ -1,0 +1,13 @@
+[
+  {
+    "task": "Voorbeeldtaak met deeltaken",
+    "client": "NSGK",
+    "hours": 2,
+    "day": null,
+    "priority": "medium",
+    "subtasks": [
+      "Eerste deeltaak",
+      "Tweede deeltaak"
+    ]
+  }
+]

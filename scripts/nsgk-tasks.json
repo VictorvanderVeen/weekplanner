@@ -1,0 +1,68 @@
+[
+  {
+    "task": "NSGK – ⚠️ Nu oppakken (tijdgevoelig)",
+    "client": "NSGK",
+    "hours": 1,
+    "day": null,
+    "priority": "high",
+    "subtasks": [
+      "GA4-verificatie: in property EMR (G-G3CDL5BEMR) checken of marathon-verkeer écht gestopt is — deadline verstreken",
+      "VOG inleveren bij Laura (HR) — nog niet binnen"
+    ]
+  },
+  {
+    "task": "NSGK – GA4 / Marathon-tracking",
+    "client": "NSGK",
+    "hours": 4,
+    "day": null,
+    "priority": "high",
+    "subtasks": [
+      "Conversion Linker-tag in GTM-MS6ZKW3 (trigger All Pages) — eerst dit",
+      "Remarketing-tag Paid (Marathon) — conversie-ID 619131472, All Pages",
+      "Remarketing-tag Grants (Marathon) — conversie-ID 1031207036, All Pages",
+      "Consent koppelen aan alle 3 tags (Cookiebot, marketing) — AVG-risico",
+      "Testen in Preview + publiceren",
+      "Audience Marathon–website-bezoekers in AW-619131472 (Paid), hostname bevat megawandelmarathon.nl",
+      "Zelfde audience in AW-1031207036 (Grants)",
+      "Fase 3: conversie-acties bepalen + per Ads-account aanmaken + tags bouwen/testen/publiceren",
+      "Tag in marathon-container hernoemen naar Marathon + ID (nu GA4 - config)",
+      "Bij NSGK navragen of Ads-opzet (beide accounts, marathon apart) klopt"
+    ]
+  },
+  {
+    "task": "NSGK – Campagnevragen Manon (Samen naar school)",
+    "client": "NSGK",
+    "hours": 1,
+    "day": null,
+    "priority": "medium",
+    "subtasks": [
+      "Advies donatie-flow: alleen landingspagina of ook bevestiging + bedank-mail?",
+      "Meta-budget: adviseer je vooraf inkopen? (max €10K/mnd, geen achteraf-facturatie)",
+      "Doelgroep: reageren op voorstel 55+/oma's/zorgmedewerkers i.p.v. moeders",
+      "Kleinere review-punten in deck: namen (Anna & Lies), foto's 3 koppeltjes, briefing, herkennen"
+    ]
+  },
+  {
+    "task": "NSGK – Onboarding / praktisch",
+    "client": "NSGK",
+    "hours": 1,
+    "day": null,
+    "priority": "medium",
+    "subtasks": [
+      "Leermodules doornemen (nsgk.sharepoint.com/sites/leermodules, ~45 min)",
+      "Outlook-handtekening instellen + wachtwoord aanpassen",
+      "Facturen sturen naar facturen@gehandicaptekind.nl mét urenverantwoording"
+    ]
+  },
+  {
+    "task": "NSGK – Wacht op NSGK (opvolgen)",
+    "client": "NSGK",
+    "hours": 0.5,
+    "day": null,
+    "priority": "low",
+    "subtasks": [
+      "Manon: scripts weghalen bij Samennaarschool + check Iraiser/Kentaa/EF2 (Meta Pixel, Leadinfo, Hotjar)",
+      "Maartje: bevestiging Sazza-/andere onderzoeken inclusief onderwijs"
+    ]
+  }
+]
