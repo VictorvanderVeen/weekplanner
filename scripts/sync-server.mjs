@@ -96,10 +96,15 @@ function setCors(res, origin) {
   res.setHeader("Access-Control-Allow-Origin", origin || "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  // Nodig omdat de https-Vercel-site (publiek netwerk) een verzoek doet naar
+  // localhost (privénetwerk) — Chrome's Private Network Access blokkeert dat
+  // anders stilzwijgend, los van gewone CORS.
+  res.setHeader("Access-Control-Allow-Private-Network", "true");
 }
 
 const server = createServer((req, res) => {
   setCors(res, req.headers.origin);
+  console.log(`${req.method} ${req.url}`);
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
