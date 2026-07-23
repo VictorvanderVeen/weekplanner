@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGate } from "./components/SubscriptionGate";
+import { SyncToObsidianButton } from "./components/SyncToObsidianButton";
 import { Auth } from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
 import { usePlanner } from "./hooks/usePlanner";
@@ -613,6 +614,7 @@ function WeekPlanner() {
               <div style={{ width: 1, height: 24, background: COLORS.border, margin: "0 4px" }} />
             </>
           )}
+          <SyncToObsidianButton />
           <button
             onClick={signOut}
             style={{
