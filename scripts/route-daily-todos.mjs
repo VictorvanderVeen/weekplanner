@@ -29,6 +29,7 @@ const DRY_RUN = process.argv.includes("--dry-run");
 const TAG_TO_FOLDER = {
   uaf: "UAF",
   mindwise: "Mindwise",
+  mindwize: "Mindwise", // zo heet het bureau echt; Victor typt het vaak zo
   nsgk: "NSGK",
   followthis: "Follow This",
   hospitaalbroeders: "Hospitaalbroeders",
