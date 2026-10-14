@@ -165,7 +165,7 @@ content = replaceSection(content, "## 📋 Taken vandaag", bodyLines);
 // Invulvak voor losse taken; route-daily-todos.mjs verhuist #klant-regels
 // de volgende ochtend naar 🔴 Vandaag in het klantdashboard.
 content = ensureSection(content, "## ➕ Nieuwe taken", [
-  "*Typ `- [ ] #klant taak` (bv. `- [ ] #mindwise Hamlin bellen`) en vink vandaag hier af. Niet af? Dan staat hij morgen bij die klant onder 🔴 Vandaag. Zonder #klant blijft het hier staan als privé-taak.*",
+  "*Voorbeeld: `- [ ] #mindwise Hamlin bellen`. Klaar? Klik het rondje aan. Niet gelukt vandaag? Dan staat de taak morgen vanzelf in Taken vandaag. Zonder #klant blijft hij gewoon hier staan.*",
   "*Klanten: `#mindwise` `#nsgk` `#uaf` `#takecarebnb` `#lezenschrijven` `#followthis` `#hospitaalbroeders` `#sofii` `#newbusiness` `#eigenbedrijf` `#prive`*",
   "",
   "- [ ] ",
