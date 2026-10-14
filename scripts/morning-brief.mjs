@@ -24,14 +24,25 @@ function notify(title, body) {
 // Vervangt (of voegt toe) de inhoud onder `heading` in een dagnotitie, zonder
 // de rest van het bestand (afspraken, chief-overzicht, eigen aantekeningen)
 // aan te raken — zelfde principe als de vaste secties die /chief bijwerkt.
-function replaceSection(content, heading, bodyLines) {
+// Nieuwe sectie komt direct ná `afterHeading` (als die bestaat), anders onder de titel.
+function replaceSection(content, heading, bodyLines, afterHeading = null) {
   const lines = content.split("\n");
   const block = [heading, "", ...bodyLines, ""];
   const idx = lines.findIndex((l) => l.trim() === heading);
   if (idx === -1) {
-    const titleIdx = lines.findIndex((l) => /^# /.test(l));
-    const insertAt = titleIdx !== -1 ? titleIdx + 1 : lines.length;
-    lines.splice(insertAt, 0, "", ...block);
+    const afterIdx = afterHeading ? lines.findIndex((l) => l.trim() === afterHeading) : -1;
+    let insertAt;
+    if (afterIdx !== -1) {
+      insertAt = lines.length;
+      for (let i = afterIdx + 1; i < lines.length; i++) {
+        if (/^## /.test(lines[i])) { insertAt = i; break; }
+      }
+      lines.splice(insertAt, 0, ...block);
+    } else {
+      const titleIdx = lines.findIndex((l) => /^# /.test(l));
+      insertAt = titleIdx !== -1 ? titleIdx + 1 : lines.length;
+      lines.splice(insertAt, 0, "", ...block);
+    }
     return lines.join("\n");
   }
   let end = lines.length;
@@ -65,6 +76,56 @@ const bodyLines = [
   "```",
 ];
 
+// Vervangt sinds 14-10 het losse hoofddashboard (0 dashboard.md) en de
+// overzichtspagina's: alles wat Victor naast "vandaag" wil zien, live in de
+// dagnotitie. TASK-queries zijn afvinkbaar (schrijven terug naar de bron).
+const KLANT = 'regexreplace(file.folder, "Projecten/", "")';
+const overzichtLines = [
+  "### ⚠️ Achterstallig",
+  "```dataview",
+  "TASK",
+  'FROM "Projecten" AND -"Projecten/Archief"',
+  "WHERE !completed AND due AND due < date(today)",
+  `GROUP BY ${KLANT}`,
+  "```",
+  "",
+  "### 📅 Deadlines komende 14 dagen",
+  "```dataview",
+  "TASK",
+  'FROM "Projecten" AND -"Projecten/Archief"',
+  "WHERE !completed AND due AND due >= date(today) AND due <= date(today) + dur(14 days)",
+  "SORT due ASC",
+  `GROUP BY ${KLANT}`,
+  "```",
+  "",
+  "### 🏠 Privé",
+  "```dataview",
+  "TASK",
+  'FROM "Calendar"',
+  "WHERE !completed AND length(outlinks) = 0 AND file.path != this.file.path",
+  "GROUP BY file.link",
+  "```",
+  "",
+  "### 👥 Klanten",
+  "```dataview",
+  "TABLE WITHOUT ID",
+  `  link(file.link, ${KLANT}) AS "Klant",`,
+  '  length(filter(file.tasks, (t) => !t.completed)) AS "Open taken",',
+  '  deadline AS "Deadline"',
+  'FROM "Projecten" AND -"Projecten/Archief"',
+  'WHERE type = "klant"',
+  "SORT deadline ASC",
+  "```",
+  "",
+  "> [!todo]- Alle open taken per klant (klik om uit te klappen)",
+  "> ```dataview",
+  "> TASK",
+  '> FROM "Projecten" AND -"Projecten/Archief"',
+  "> WHERE !completed",
+  `> GROUP BY ${KLANT}`,
+  "> ```",
+];
+
 const calDir = `${VAULT}/Calendar`;
 if (!existsSync(calDir)) mkdirSync(calDir, { recursive: true });
 const calPath = `${calDir}/${dateStr}.md`;
@@ -76,6 +137,7 @@ if (existsSync(calPath)) {
   content = `---\ndatum: ${dateStr}\ndag: ${dagNaam}\ntags: [dagnotitie]\n---\n\n# ${dagLang}\n\n## 📝 Notities\n\n`;
 }
 content = replaceSection(content, "## 📋 Taken vandaag", bodyLines);
+content = replaceSection(content, "## 🔭 Overzicht", overzichtLines, "## 📋 Taken vandaag");
 writeFileSync(calPath, content, "utf8");
 console.log(`✅ "Taken vandaag" ververst in ${calPath} (${vandaag.length} taken)`);
 
