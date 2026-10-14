@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findActionsSection, findHeaderBlock, insertTaskUnderHeader } from "../../vragenronde/lib/dashboard-parser.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VAULT = process.env.TODO_ROUTER_VAULT_OVERRIDE || "/Users/victorvanderveen/Documents/Obsidian Vault";
@@ -50,6 +51,10 @@ const TAG_TO_FOLDER = {
 
 const TODO_LINE = /^(\s*)- (?:\[ \] )?#(\w+)\s+(.+)$/;
 const INBOX_HEADING = "## 📥 Vanuit dagboekje";
+// Sinds 14-10: taken uit "➕ Nieuwe taken" zijn bedoeld voor die dag. Wat niet af is
+// gekomen, landt bij de klant onder 🔴 Vandaag (fallback: 📥 als het dashboard geen
+// actiesectie heeft).
+const VANDAAG = "### 🔴 Vandaag";
 
 function lastNDays(n) {
   const out = [];
@@ -72,6 +77,18 @@ function insertIntoDashboard(folderRelPath, itemText, sourceDateStr) {
   const newLine = `- [ ] ${itemText} *(uit dagboekje ${sourceDateStr})*`;
 
   const lines = content.split("\n");
+
+  const section = findActionsSection(lines);
+  if (section) {
+    if (findHeaderBlock(lines, section, VANDAAG)) {
+      insertTaskUnderHeader(lines, section, VANDAAG, newLine);
+    } else {
+      lines.splice(section.start + 1, 0, "", VANDAAG, newLine);
+    }
+    if (!DRY_RUN) writeFileSync(dashPath, lines.join("\n"), "utf8");
+    return true;
+  }
+
   const headingIdx = lines.findIndex((l) => l.trim() === INBOX_HEADING);
 
   if (headingIdx === -1) {
@@ -128,7 +145,7 @@ function processDailyNote(dateStr) {
     const ok = insertIntoDashboard(folder, text.trim(), dateStr);
     if (ok) {
       routed++;
-      lines[i] = `${indent}- [x] ~~#${tagRaw} ${text.trim()}~~ → verplaatst naar ${folder}-dashboard`;
+      lines[i] = `${indent}- [x] ~~#${tagRaw} ${text.trim()}~~ → verplaatst naar ${folder}-dashboard (🔴 Vandaag)`;
       changed = true;
     }
   }

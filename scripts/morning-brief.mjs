@@ -163,12 +163,12 @@ if (existsSync(calPath)) {
 }
 content = replaceSection(content, "## 📋 Taken vandaag", bodyLines);
 // Invulvak voor losse taken; route-daily-todos.mjs verhuist #klant-regels
-// de volgende ochtend naar het dashboard (sectie "📥 Vanuit dagboekje").
+// de volgende ochtend naar 🔴 Vandaag in het klantdashboard.
 content = ensureSection(content, "## ➕ Nieuwe taken", [
-  "*Typ `- #klant taak` (bv. `- #mindwise Hamlin bellen`) — gaat morgenochtend naar het dashboard. Zonder #klant blijft het hier staan als privé-taak: gebruik dan `- [ ] taak`.*",
+  "*Typ `- [ ] #klant taak` (bv. `- [ ] #mindwise Hamlin bellen`) en vink vandaag hier af. Niet af? Dan staat hij morgen bij die klant onder 🔴 Vandaag. Zonder #klant blijft het hier staan als privé-taak.*",
   "*Klanten: `#mindwise` `#nsgk` `#uaf` `#takecarebnb` `#lezenschrijven` `#followthis` `#hospitaalbroeders` `#sofii` `#newbusiness` `#eigenbedrijf` `#prive`*",
   "",
-  "- ",
+  "- [ ] ",
 ], "## 📋 Taken vandaag");
 content = replaceSection(content, "## 🔭 Overzicht", overzichtLines, "## 📋 Taken vandaag");
 writeFileSync(calPath, content, "utf8");
