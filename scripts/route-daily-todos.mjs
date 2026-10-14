@@ -4,8 +4,9 @@
 // wordt afgevinkt + doorgestreept zodat 'ie niet dubbel opgepikt wordt, maar
 // blijft zichtbaar staan (geen dataverlies, gewoon een spoor).
 //
-// Conventie in de dagnotitie: "- [ ] #Klant Tekst van de taak"
-// Voorbeeld:   - [ ] #UAF Bel Karel over Tag Manager
+// Conventie in de dagnotitie: "- #Klant Tekst van de taak" (het hokje "[ ]" mag,
+// hoeft niet — sinds 14-10, typt makkelijker onder "## ➕ Nieuwe taken")
+// Voorbeeld:   - #UAF Bel Karel over Tag Manager
 //              - [ ] #prive Tandarts bellen
 //
 // Gebruik:
@@ -34,6 +35,7 @@ const TAG_TO_FOLDER = {
   takecarebnb: "Takecare BNB",
   sofii: "Sofii",
   newbusiness: "New business",
+  eigenbedrijf: "Eigen bedrijf",
   eten: "ETEN",
   prive: "Prive",
   adhd: "ADHD",
@@ -46,7 +48,7 @@ const TAG_TO_FOLDER = {
   amref: "Archief/Amref",
 };
 
-const TODO_LINE = /^(\s*)- \[ \] #(\w+)\s+(.+)$/;
+const TODO_LINE = /^(\s*)- (?:\[ \] )?#(\w+)\s+(.+)$/;
 const INBOX_HEADING = "## 📥 Vanuit dagboekje";
 
 function lastNDays(n) {

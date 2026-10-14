@@ -53,6 +53,20 @@ function replaceSection(content, heading, bodyLines, afterHeading = null) {
   return lines.join("\n");
 }
 
+// Zet een sectie alleen neer als die er nog niet is — wat Victor erin typt,
+// wordt nooit overschreven (anders dan bij replaceSection).
+function ensureSection(content, heading, bodyLines, beforeHeading) {
+  const lines = content.split("\n");
+  if (lines.some((l) => l.trim() === heading)) return content;
+  let at = lines.findIndex((l) => l.trim() === beforeHeading);
+  if (at === -1) {
+    const titleIdx = lines.findIndex((l) => /^# /.test(l));
+    at = titleIdx !== -1 ? titleIdx + 2 : lines.length;
+  }
+  lines.splice(at, 0, heading, "", ...bodyLines, "");
+  return lines.join("\n");
+}
+
 const VAULT = "/Users/victorvanderveen/Documents/Obsidian Vault";
 
 const today = new Date();
@@ -148,6 +162,14 @@ if (existsSync(calPath)) {
   content = `---\ndatum: ${dateStr}\ndag: ${dagNaam}\ntags: [dagnotitie]\n---\n\n# ${dagLang}\n\n## 📝 Notities\n\n`;
 }
 content = replaceSection(content, "## 📋 Taken vandaag", bodyLines);
+// Invulvak voor losse taken; route-daily-todos.mjs verhuist #klant-regels
+// de volgende ochtend naar het dashboard (sectie "📥 Vanuit dagboekje").
+content = ensureSection(content, "## ➕ Nieuwe taken", [
+  "*Typ `- #klant taak` (bv. `- #mindwise Hamlin bellen`) — gaat morgenochtend naar het dashboard. Zonder #klant blijft het hier staan als privé-taak: gebruik dan `- [ ] taak`.*",
+  "*Klanten: `#mindwise` `#nsgk` `#uaf` `#takecarebnb` `#lezenschrijven` `#followthis` `#hospitaalbroeders` `#sofii` `#newbusiness` `#eigenbedrijf` `#prive`*",
+  "",
+  "- ",
+], "## 📋 Taken vandaag");
 content = replaceSection(content, "## 🔭 Overzicht", overzichtLines, "## 📋 Taken vandaag");
 writeFileSync(calPath, content, "utf8");
 console.log(`✅ "Taken vandaag" ververst in ${calPath} (${vandaag.length} taken)`);
