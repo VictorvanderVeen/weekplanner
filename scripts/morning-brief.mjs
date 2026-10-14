@@ -81,6 +81,15 @@ const bodyLines = [
 // dagnotitie. TASK-queries zijn afvinkbaar (schrijven terug naar de bron).
 const KLANT = 'regexreplace(file.folder, "Projecten/", "")';
 const overzichtLines = [
+  // Elk uur gevuld door voice-memo-pipeline (co.veen.voice-memos).
+  "### 🎙️ Ingesproken (nog niet ingedeeld)",
+  "```dataview",
+  "TASK",
+  'FROM "Inbox/Voice Memos"',
+  "WHERE !completed",
+  "GROUP BY file.link",
+  "```",
+  "",
   "### ⚠️ Achterstallig",
   "```dataview",
   "TASK",
