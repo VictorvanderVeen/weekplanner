@@ -101,8 +101,10 @@ const overzichtLines = [
   "### 🏠 Privé",
   "```dataview",
   "TASK",
-  'FROM "Calendar"',
-  "WHERE !completed AND length(outlinks) = 0 AND file.path != this.file.path",
+  // Niet: oude geplakte Vandaag-kopieën en Chief-overzichten (vóór 14-10) en het archief.
+  'FROM "Calendar" AND -"Calendar/Archief"',
+  "WHERE !completed AND text != \"\" AND length(outlinks) = 0 AND file.path != this.file.path",
+  '  AND !contains(meta(section).subpath, "Taken vandaag") AND !contains(meta(section).subpath, "Chief")',
   "GROUP BY file.link",
   "```",
   "",
