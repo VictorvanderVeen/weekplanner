@@ -6,4 +6,4 @@
 exit 0
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 cd "$HOME"
-/usr/local/bin/claude -p "/chief" --permission-mode bypassPermissions >> /tmp/chief-ochtend.log 2>&1
+"$HOME/.local/bin/claude" -p "/chief" --permission-mode bypassPermissions >> /tmp/chief-ochtend.log 2>&1
