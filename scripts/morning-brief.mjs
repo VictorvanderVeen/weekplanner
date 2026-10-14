@@ -1,7 +1,7 @@
 // Morning Brief — draait elke ochtend via LaunchAgent.
-// Leest de "🔴 Vandaag"-taken rechtstreeks uit de Obsidian-dashboards
-// (sinds 14-8 niet meer uit Supabase), schrijft/ververst de "## 📋 Taken
-// vandaag"-sectie in Calendar/YYYY-MM-DD.md, en stuurt een macOS-notificatie.
+// Zet in Calendar/YYYY-MM-DD.md onder "## 📋 Taken vandaag" een live
+// Dataview-lijst van de "🔴 Vandaag"-taken uit de Obsidian-dashboards, en
+// stuurt een macOS-notificatie met het aantal (geteld uit de dashboards).
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
@@ -52,9 +52,18 @@ const dagLang = `${dagNaam} ${today.getDate()} ${MAANDEN[today.getMonth()]}`;
 const { queue } = getQueue({ vaultPath: VAULT, mode: "full" });
 const vandaag = queue.filter((t) => t.header === "### 🔴 Vandaag");
 
-const bodyLines = vandaag.length
-  ? vandaag.map((t) => `- [ ] **${t.client}** — ${t.text}${t.due ? ` [due:: ${t.due}]` : ""}`)
-  : ["*Geen taken onder 🔴 Vandaag — check de dashboards of draai `/chief vragenronde`.*"];
+// Live Dataview-lijst i.p.v. een geplakte kopie (sinds 14-10): afvinken hier
+// vinkt de taak in het dashboard zelf af. Een kopie liet het dashboard
+// ongemoeid, waardoor afgevinkte taken de volgende ochtend terugkwamen.
+// Filter op de kop is getest (14-10): exacte "🔴 Vandaag" vindt alles.
+const bodyLines = [
+  "```dataview",
+  "TASK",
+  'FROM "Projecten" AND -"Projecten/Archief"',
+  'WHERE !completed AND meta(section).subpath = "🔴 Vandaag"',
+  'GROUP BY regexreplace(file.folder, "Projecten/", "")',
+  "```",
+];
 
 const calDir = `${VAULT}/Calendar`;
 if (!existsSync(calDir)) mkdirSync(calDir, { recursive: true });
