@@ -15,6 +15,7 @@ function isoDate(d) {
 }
 
 function notify(title, body) {
+  if (process.platform !== "darwin") return; // server (Linux): geen macOS-melding
   const escaped = body.replace(/"/g, '\\"');
   execSync(
     `osascript -e 'display notification "${escaped}" with title "${title}" subtitle "Open Claude Code → /chief"'`
@@ -67,7 +68,7 @@ function ensureSection(content, heading, bodyLines, beforeHeading) {
   return lines.join("\n");
 }
 
-const VAULT = "/Users/victorvanderveen/Documents/Obsidian Vault";
+const VAULT = process.env.MORNING_BRIEF_VAULT_OVERRIDE || "/Users/victorvanderveen/Documents/Obsidian Vault";
 
 const today = new Date();
 const dagNaam = DAGEN[today.getDay()];

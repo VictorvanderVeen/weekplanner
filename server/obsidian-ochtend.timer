@@ -1,0 +1,9 @@
+[Unit]
+Description=Obsidian ochtendtaak elke werkdag 06:50 NL-tijd
+
+[Timer]
+OnCalendar=Mon..Fri 06:50 Europe/Amsterdam
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Obsidian ochtendtaak (takenlijst in dagnotitie)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=victorvanderveen
+ExecStart=/home/victorvanderveen/ochtend/ochtend.sh
