@@ -167,7 +167,7 @@ content = replaceSection(content, "## 📋 Taken vandaag", bodyLines);
 // de volgende ochtend naar 🔴 Vandaag in het klantdashboard.
 content = ensureSection(content, "## ➕ Nieuwe taken", [
   "*Voorbeeld: `- [ ] #mindwise Hamlin bellen`. Klaar? Klik het rondje aan. Niet gelukt vandaag? Dan staat de taak morgen vanzelf in Taken vandaag. Zonder #klant blijft hij gewoon hier staan.*",
-  "*Klanten: `#mindwise` `#nsgk` `#uaf` `#takecarebnb` `#lezenschrijven` `#followthis` `#hospitaalbroeders` `#sofii` `#newbusiness` `#eigenbedrijf` `#prive`*",
+  "*Klanten: `#mindwise` `#nsgk` `#uaf` `#takecarebnb` `#lezenschrijven` `#followthis` `#hospitaalbroeders` `#sofii` `#radboud` `#newbusiness` `#eigenbedrijf` `#prive`*",
   "",
   "- [ ] ",
 ], "## 📋 Taken vandaag");

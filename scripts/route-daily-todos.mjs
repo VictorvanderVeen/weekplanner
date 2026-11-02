@@ -36,6 +36,7 @@ const TAG_TO_FOLDER = {
   lezenschrijven: "Lezen & Schrijven",
   takecarebnb: "Takecare BNB",
   sofii: "Sofii",
+  radboud: "Radboud",
   newbusiness: "New business",
   eigenbedrijf: "Eigen bedrijf",
   eten: "ETEN",
