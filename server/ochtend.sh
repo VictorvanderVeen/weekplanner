@@ -13,4 +13,5 @@ export TODO_ROUTER_VAULT_OVERRIDE="$V" ROLL_BUCKETS_VAULT_OVERRIDE="$V" MORNING_
 node scripts/route-daily-todos.mjs >> "$LOG" 2>&1
 node scripts/roll-buckets.mjs >> "$LOG" 2>&1
 node scripts/morning-brief.mjs >> "$LOG" 2>&1
+OPVOLGEN_VAULT="$V" python3 "$HOME/ochtend/weekplanner/server/opvolgen.py" >> "$LOG" 2>&1
 ob sync --path "$V" >> "$LOG" 2>&1
