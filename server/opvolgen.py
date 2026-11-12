@@ -101,11 +101,11 @@ def regels(mails, verwerkt):
     return out
 
 
-def zet_sectie(inhoud, body):
+def zet_sectie(inhoud, body, heading=HEADING):
     lines = inhoud.split("\n")
-    blok = [HEADING, "", *body, ""]
-    if HEADING in [l.strip() for l in lines]:
-        i = [l.strip() for l in lines].index(HEADING)
+    blok = [heading, "", *body, ""]
+    if heading in [l.strip() for l in lines]:
+        i = [l.strip() for l in lines].index(heading)
         eind = next((j for j in range(i + 1, len(lines)) if lines[j].startswith("## ")), len(lines))
         lines[i:eind] = blok
     else:

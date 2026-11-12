@@ -14,4 +14,6 @@ node scripts/route-daily-todos.mjs >> "$LOG" 2>&1
 node scripts/roll-buckets.mjs >> "$LOG" 2>&1
 node scripts/morning-brief.mjs >> "$LOG" 2>&1
 OPVOLGEN_VAULT="$V" python3 "$HOME/ochtend/weekplanner/server/opvolgen.py" >> "$LOG" 2>&1
+[ -f "$HOME/ochtend/.claude-token" ] && export CLAUDE_CODE_OAUTH_TOKEN="$(cat "$HOME/ochtend/.claude-token")"
+OPVOLGEN_VAULT="$V" python3 "$HOME/ochtend/weekplanner/server/toezeggingen.py" >> "$LOG" 2>&1
 ob sync --path "$V" >> "$LOG" 2>&1
