@@ -1,5 +1,5 @@
 #!/bin/bash
-# Zet de opvolg-mails-stap op de server en vraagt om het Soverin-app-wachtwoord.
+# Zet de opvolg-mails-stap op de server en vraagt om het Soverin-mailwachtwoord.
 set -e
 S=victorvanderveen@85.10.151.75
 D="$(cd "$(dirname "$0")" && pwd)"
@@ -9,7 +9,7 @@ scp -q "$D/ochtend.sh" "$S:ochtend/ochtend.sh"
 ssh "$S" 'chmod +x ~/ochtend/ochtend.sh'
 echo "Bestanden staan erop."
 echo
-read -r -s -p "Plak het Soverin-app-wachtwoord (je ziet niets verschijnen) en druk Enter: " PW
+read -r -s -p "Typ of plak je Soverin-mailwachtwoord (je ziet niets verschijnen) en druk Enter: " PW
 echo
 printf 'victor@veen.co\n%s\n' "$PW" | ssh "$S" 'umask 077; cat > ~/ochtend/.soverin'
 unset PW
