@@ -4,8 +4,7 @@
 // stuurt een macOS-notificatie met het aantal (geteld uit de dashboards).
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { execSync, execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 import { getQueue } from "../../vragenronde/lib/obsidian-queue.mjs";
 
 const DAGEN = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
@@ -67,27 +66,6 @@ function ensureSection(content, heading, bodyLines, beforeHeading) {
   }
   lines.splice(at, 0, heading, "", ...bodyLines, "");
   return lines.join("\n");
-}
-
-// Leest "Werk kalender" van vandaag. null = niet gelukt (sectie niet aanraken),
-// [] = gelukt maar leeg.
-function readAgenda() {
-  if (process.platform !== "darwin") return null;
-  try {
-    const script = fileURLToPath(new URL("./agenda-vandaag.applescript", import.meta.url));
-    const out = execFileSync("osascript", [script], { encoding: "utf8", timeout: 5 * 60 * 1000 });
-    return out
-      .split("\n")
-      .filter((l) => l.trim())
-      .map((l) => {
-        const [t1, t2, titel, loc] = l.split("\t");
-        return { t1, t2, titel: titel.trim(), loc: (loc || "").trim() };
-      })
-      .sort((a, b) => a.t1.localeCompare(b.t1));
-  } catch (e) {
-    console.warn("⚠️  Agenda ophalen mislukt:", e.message.split("\n")[0]);
-    return null;
-  }
 }
 
 const VAULT = process.env.MORNING_BRIEF_VAULT_OVERRIDE || "/Users/victorvanderveen/Documents/Obsidian Vault";
@@ -194,20 +172,6 @@ content = ensureSection(content, "## ➕ Nieuwe taken", [
   "- [ ] ",
 ], "## 📋 Taken vandaag");
 content = replaceSection(content, "## 🔭 Overzicht", overzichtLines, "## 📋 Taken vandaag");
-
-// Agenda (sinds 12-11): zette alleen een handmatige /chief-run neer, en die
-// draait sinds 14-10 niet meer onbemand — dus geen afspraken in de dagnotitie.
-// Calendar.app doet er ~2 min over; mislukt het, dan blijft een bestaande
-// sectie staan en loopt de rest van de ochtend gewoon door.
-const afspraken = readAgenda();
-if (afspraken) {
-  const lines = afspraken.length
-    ? afspraken.map(({ t1, t2, titel, loc }) =>
-        `- ${t2 ? `${t1}–${t2}` : t1} ${titel}${loc ? ` — ${loc}` : ""} [afspraak:: true]`)
-    : ["*Geen afspraken vandaag.*"];
-  content = replaceSection(content, "## 🗓️ Afspraken", lines, "## ➕ Nieuwe taken");
-  console.log(`🗓️  ${afspraken.length} afspraken in dagnotitie gezet`);
-}
 writeFileSync(calPath, content, "utf8");
 console.log(`✅ "Taken vandaag" ververst in ${calPath} (${vandaag.length} taken)`);
 
