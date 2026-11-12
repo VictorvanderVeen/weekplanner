@@ -11,7 +11,7 @@ ssh "$S" 'export PATH="$HOME/.npm-global/bin:$PATH"; npm install -g --prefix "$H
 echo
 read -r -s -p "Plak de token uit 'claude setup-token' (je ziet niets verschijnen) en druk Enter: " TK
 echo
-printf '%s' "$TK" | ssh "$S" 'umask 077; cat > ~/ochtend/.claude-token'
+printf '%s' "$TK" | tr -d '[:space:]' | ssh "$S" 'umask 077; cat > ~/ochtend/.claude-token'
 unset TK
 echo "Token opgeslagen. Proef: Claude op de server laten antwoorden..."
 ssh "$S" 'export PATH="$HOME/.npm-global/bin:$PATH" CLAUDE_CODE_OAUTH_TOKEN="$(cat ~/ochtend/.claude-token)"; echo "Antwoord alleen: OK" | claude -p --max-turns 1'

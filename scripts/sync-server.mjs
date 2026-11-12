@@ -73,9 +73,9 @@ function buildBlock(tasks) {
   return body;
 }
 
-function writeBlockToCockpit(folderName, block) {
-  const file = path.join(PROJECTEN_DIR, folderName, "0 cockpit.md");
-  if (!existsSync(file)) return { ok: false, reason: "geen 0 cockpit.md gevonden" };
+function writeBlockToDashboard(folderName, block) {
+  const file = path.join(PROJECTEN_DIR, folderName, "0 dashboard.md");
+  if (!existsSync(file)) return { ok: false, reason: "geen 0 dashboard.md gevonden" };
 
   let content = readFileSync(file, "utf8");
   const markerRe = new RegExp(`${MARK_START}[\\s\\S]*?${MARK_END}\\n?`);
@@ -146,7 +146,7 @@ const server = createServer((req, res) => {
           unmatched.push(client);
           continue;
         }
-        const result = writeBlockToCockpit(folder, buildBlock(clientTasks));
+        const result = writeBlockToDashboard(folder, buildBlock(clientTasks));
         if (result.ok) updated.push(`${client} (${clientTasks.length})`);
         else unmatched.push(`${client} — ${result.reason}`);
       }
