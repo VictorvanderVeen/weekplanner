@@ -40,7 +40,11 @@ NIET: wat anderen moeten doen, beleefdheidsfrasen zonder concrete actie, dingen 
 dezelfde mail al geleverd worden (bijlage zit erbij), privé-afspraken zonder actie.
 
 Vandaag is {vandaag}. Klanttags: {tags} (Het Gehandicapte Kind = #nsgk, Stichting
-Vluchteling-Studenten UAF = #uaf, Lezen & Schrijven = #lezenschrijven). Geen passende klant → "".
+Vluchteling-Studenten UAF = #uaf, Lezen & Schrijven = #lezenschrijven, Broodfonds = #prive).
+Alles via bureau Mindwise/Mindwize (collega's o.a. Cynthia, Jasmijn, Samira, Brigitte, Benjamin)
+en hun eindklanten — PAZ Holandesa (Paz), VSO, SJD/St. Josefs, KiKa, FUS, ARF/Attrape Rêves,
+Hamlin Fistula, Mercy Ships, Forska, Ge-en-gava — = #mindwise; noem de eindklant dan vooraan in
+de taak ("Paz: …"). Geen passende klant → "".
 
 Gebruik geen tools; alles staat hieronder. Antwoord met ALLEEN een JSON-array, niets anders. Per toezegging:
 {{"id": "<message-id precies zoals gegeven>", "klant": "#tag of leeg", "taak": "korte taak,
