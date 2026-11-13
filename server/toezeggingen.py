@@ -42,7 +42,7 @@ dezelfde mail al geleverd worden (bijlage zit erbij), privé-afspraken zonder ac
 Vandaag is {vandaag}. Klanttags: {tags} (Het Gehandicapte Kind = #nsgk, Stichting
 Vluchteling-Studenten UAF = #uaf, Lezen & Schrijven = #lezenschrijven). Geen passende klant → "".
 
-Antwoord met ALLEEN een JSON-array, niets anders. Per toezegging:
+Gebruik geen tools; alles staat hieronder. Antwoord met ALLEEN een JSON-array, niets anders. Per toezegging:
 {{"id": "<message-id precies zoals gegeven>", "klant": "#tag of leeg", "taak": "korte taak,
 begint met werkwoord", "aan": "voornaam ontvanger", "due": "YYYY-MM-DD of null",
 "bucket": "Vandaag | Deze week | Volgende week"}}
@@ -147,7 +147,7 @@ def vraag_claude(mails):
         f"=== message-id: {m['id']}\nAan: {m['aan']}\nDatum: {m['datum']}\nOnderwerp: {m['onderwerp']}\n\n{m['tekst']}"
         for m in mails)
     prompt = PROMPT.format(vandaag=date.today().isoformat(), tags=KLANTTAGS, mails=blok)
-    r = subprocess.run(["claude", "-p", "--max-turns", "1"], input=prompt, capture_output=True,
+    r = subprocess.run(["claude", "-p", "--max-turns", "1", "--tools", ""], input=prompt, capture_output=True,
                        text=True, timeout=600)
     if r.returncode != 0:
         raise RuntimeError(f"claude faalde: {r.stderr.strip()[:200] or r.stdout.strip()[:200]}")
